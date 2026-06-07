@@ -27,13 +27,11 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-border-strong bg-surface-elevated px-4 py-3 shadow-xl backdrop-blur-xl">
+    <div className="rounded-md border border-border bg-white px-3 py-2 shadow-lg">
       {label && (
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
-          Tháng {label}
-        </p>
+        <p className="mb-1 text-xs font-semibold text-muted">Tháng {label}</p>
       )}
-      <ul className="space-y-2">
+      <ul className="space-y-1">
         {payload.map((entry) => (
           <li
             key={String(entry.dataKey ?? entry.name)}
@@ -44,7 +42,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-foreground-soft">{getDisplayName(entry)}:</span>
-            <span className="font-bold text-accent-light">
+            <span className="font-semibold text-foreground">
               {formatCurrency(entry.value ?? 0)}
             </span>
           </li>

@@ -6,9 +6,6 @@ interface SkeletonProps {
 
 export function Skeleton({ className }: SkeletonProps) {
   return (
-    <div
-      className={cn('shimmer rounded-xl bg-surface-elevated', className)}
-      aria-hidden="true"
-    />
+    <div className={cn('shimmer rounded-md bg-table-stripe', className)} aria-hidden="true" />
   );
 }

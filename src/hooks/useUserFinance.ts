@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { getUserFinance } from '@/services';
 import type { MonthlyFinance, SourceBreakdown } from '@/types';
+import { getRuntimeBalanceAdjustment } from '@/utils/accountRuntimeStore';
 import {
   calculateFinanceSummary,
   transformBreakdownToPieChart,
   transformMonthlyToLineChart,
 } from '@/utils/chartTransformers';
+import { subscribeTransactionChange } from '@/utils/transferRuntimeStore';
 import { PIE_COLORS } from '@/constants';
 
 interface UseUserFinanceResult {
@@ -32,6 +34,12 @@ export function useUserFinance(userId: string | undefined): UseUserFinanceResult
   const refetch = useCallback(() => {
     setFetchKey((key) => key + 1);
   }, []);
+
+  const balanceAdjustment = useSyncExternalStore(
+    subscribeTransactionChange,
+    () => (userId ? getRuntimeBalanceAdjustment(userId) : 0),
+    () => 0,
+  );
 
   useEffect(() => {
     if (!userId) {
@@ -94,10 +102,18 @@ export function useUserFinance(userId: string | undefined): UseUserFinanceResult
     [activeBreakdown],
   );
 
-  const summary = useMemo(
-    () => (userId ? calculateFinanceSummary(activeMonthly) : EMPTY_SUMMARY),
-    [userId, activeMonthly],
-  );
+  const summary = useMemo(() => {
+    if (!userId) {
+      return EMPTY_SUMMARY;
+    }
+
+    const base = calculateFinanceSummary(activeMonthly);
+
+    return {
+      ...base,
+      balance: base.balance + balanceAdjustment,
+    };
+  }, [userId, activeMonthly, balanceAdjustment]);
 
   return useMemo(
     () => ({

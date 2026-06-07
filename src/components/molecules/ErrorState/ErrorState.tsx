@@ -18,22 +18,19 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        'glass-card flex flex-col items-center justify-center rounded-2xl border-expense/20 bg-expense-muted px-6 py-14 text-center',
+        'dashboard-card flex flex-col items-center justify-center px-6 py-12 text-center',
         className,
       )}
       role="alert"
     >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-expense/20 text-expense">
-        !
-      </div>
       <Text as="h2" variant="h3" className="text-expense">
         {title}
       </Text>
-      <Text variant="body" className="mt-2 max-w-md text-foreground-soft">
+      <Text variant="body" className="mt-2 max-w-md">
         {message}
       </Text>
       {onRetry && (
-        <Button variant="secondary" className="mt-6" onClick={onRetry}>
+        <Button variant="primary" className="mt-6" onClick={onRetry}>
           Thử lại
         </Button>
       )}

@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar } from '@/components/atoms/Avatar';
 import { Text } from '@/components/atoms/Text';
-import { userDetailPath } from '@/constants';
+import { userAccountPath } from '@/constants';
 import { formatCitizenId, formatCurrency } from '@/utils';
 import type { User } from '@/types';
 import { cn } from '@/utils';
@@ -15,10 +15,10 @@ interface UserCardProps {
 export const UserCard = memo(function UserCard({ user, className }: UserCardProps) {
   return (
     <Link
-      to={userDetailPath(user.id)}
+      to={userAccountPath(user.id)}
       className={cn(
         'group glass-card glass-card-hover block rounded-2xl p-6',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0',
         className,
       )}
       aria-label={`Xem chi tiết ${user.fullName}`}

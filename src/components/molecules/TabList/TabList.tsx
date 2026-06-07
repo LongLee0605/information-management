@@ -1,27 +1,28 @@
 import { cn } from '@/utils';
-import type { DetailTab } from '@/constants';
 
-interface TabItem {
-  key: DetailTab;
+interface TabItem<T extends string> {
+  key: T;
   label: string;
 }
 
-interface TabListProps {
-  tabs: TabItem[];
-  activeTab: DetailTab;
-  onTabChange: (tab: DetailTab) => void;
+interface TabListProps<T extends string> {
+  tabs: TabItem<T>[];
+  activeTab: T;
+  onTabChange: (tab: T) => void;
   className?: string;
 }
 
-export function TabList({ tabs, activeTab, onTabChange, className }: TabListProps) {
+export function TabList<T extends string>({
+  tabs,
+  activeTab,
+  onTabChange,
+  className,
+}: TabListProps<T>) {
   return (
     <div
-      className={cn(
-        'glass-card inline-flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl p-1.5 sm:w-auto',
-        className,
-      )}
+      className={cn('dashboard-card mb-6 flex overflow-x-auto', className)}
       role="tablist"
-      aria-label="Chi tiết người dùng"
+      aria-label="Điều hướng tab"
     >
       {tabs.map((tab) => {
         const isActive = tab.key === activeTab;
@@ -36,11 +37,11 @@ export function TabList({ tabs, activeTab, onTabChange, className }: TabListProp
             id={`tab-${tab.key}`}
             onClick={() => onTabChange(tab.key)}
             className={cn(
-              'shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'shrink-0 border-b-2 px-5 py-3 text-sm font-semibold transition-colors',
+              'outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0',
               isActive
-                ? 'bg-linear-to-r from-accent/20 to-primary-500/10 text-accent-light shadow-inner ring-1 ring-accent/20'
-                : 'text-muted hover:bg-surface-elevated hover:text-foreground-soft',
+                ? 'border-primary-600 text-primary-700'
+                : 'border-transparent text-muted hover:border-border-strong hover:text-foreground',
             )}
           >
             {tab.label}

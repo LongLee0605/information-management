@@ -1,0 +1,61 @@
+[
+  { "fromUserId": "u001", "toUserId": "u002", "amount": 120000000, "transactionCount": 6, "dateFrom": "2025-01-05", "dateTo": "2025-05-20" },
+  { "fromUserId": "u001", "toUserId": "u005", "amount": 165000000, "transactionCount": 5, "dateFrom": "2025-02-10", "dateTo": "2025-06-25" },
+  { "fromUserId": "u001", "toUserId": "u008", "amount": 68000000, "transactionCount": 4, "dateFrom": "2025-01-12", "dateTo": "2025-04-08" },
+  { "fromUserId": "u001", "toUserId": "u010", "amount": 52000000, "transactionCount": 3, "dateFrom": "2025-03-01", "dateTo": "2025-05-15" },
+  { "fromUserId": "u001", "toUserId": "u003", "amount": 38000000, "transactionCount": 3, "dateFrom": "2025-04-20", "dateTo": "2025-07-10" },
+
+  { "fromUserId": "u002", "toUserId": "u003", "amount": 78000000, "transactionCount": 5, "dateFrom": "2025-01-20", "dateTo": "2025-05-05" },
+  { "fromUserId": "u002", "toUserId": "u004", "amount": 44000000, "transactionCount": 3, "dateFrom": "2025-02-28", "dateTo": "2025-04-18" },
+  { "fromUserId": "u002", "toUserId": "u007", "amount": 56000000, "transactionCount": 4, "dateFrom": "2025-04-25", "dateTo": "2025-07-05" },
+  { "fromUserId": "u002", "toUserId": "u006", "amount": 31000000, "transactionCount": 3, "dateFrom": "2025-03-15", "dateTo": "2025-06-01" },
+  { "fromUserId": "u002", "toUserId": "u009", "amount": 27000000, "transactionCount": 2, "dateFrom": "2025-05-10", "dateTo": "2025-08-20" },
+
+  { "fromUserId": "u003", "toUserId": "u010", "amount": 62000000, "transactionCount": 4, "dateFrom": "2025-05-05", "dateTo": "2025-08-30" },
+  { "fromUserId": "u003", "toUserId": "u006", "amount": 37000000, "transactionCount": 3, "dateFrom": "2025-04-01", "dateTo": "2025-07-15" },
+  { "fromUserId": "u003", "toUserId": "u007", "amount": 29000000, "transactionCount": 3, "dateFrom": "2025-06-10", "dateTo": "2025-09-05" },
+  { "fromUserId": "u003", "toUserId": "u004", "amount": 24000000, "transactionCount": 2, "dateFrom": "2025-05-22", "dateTo": "2025-07-28" },
+  { "fromUserId": "u003", "toUserId": "u002", "amount": 21000000, "transactionCount": 2, "dateFrom": "2025-07-01", "dateTo": "2025-09-20" },
+
+  { "fromUserId": "u004", "toUserId": "u006", "amount": 33000000, "transactionCount": 3, "dateFrom": "2025-03-08", "dateTo": "2025-06-12" },
+  { "fromUserId": "u004", "toUserId": "u009", "amount": 23000000, "transactionCount": 2, "dateFrom": "2025-05-01", "dateTo": "2025-07-25" },
+  { "fromUserId": "u004", "toUserId": "u001", "amount": 19000000, "transactionCount": 2, "dateFrom": "2025-06-15", "dateTo": "2025-09-10" },
+  { "fromUserId": "u004", "toUserId": "u002", "amount": 22000000, "transactionCount": 2, "dateFrom": "2025-07-05", "dateTo": "2025-10-01" },
+  { "fromUserId": "u004", "toUserId": "u008", "amount": 16000000, "transactionCount": 2, "dateFrom": "2025-08-01", "dateTo": "2025-10-15" },
+
+  { "fromUserId": "u005", "toUserId": "u009", "amount": 64000000, "transactionCount": 4, "dateFrom": "2025-02-20", "dateTo": "2025-06-08" },
+  { "fromUserId": "u005", "toUserId": "u010", "amount": 72000000, "transactionCount": 5, "dateFrom": "2025-03-25", "dateTo": "2025-07-20" },
+  { "fromUserId": "u005", "toUserId": "u008", "amount": 41000000, "transactionCount": 3, "dateFrom": "2025-04-10", "dateTo": "2025-08-05" },
+  { "fromUserId": "u005", "toUserId": "u003", "amount": 32000000, "transactionCount": 2, "dateFrom": "2025-06-01", "dateTo": "2025-09-15" },
+  { "fromUserId": "u005", "toUserId": "u006", "amount": 28000000, "transactionCount": 2, "dateFrom": "2025-07-12", "dateTo": "2025-10-20" },
+
+  { "fromUserId": "u006", "toUserId": "u009", "amount": 29000000, "transactionCount": 3, "dateFrom": "2025-04-05", "dateTo": "2025-08-10" },
+  { "fromUserId": "u006", "toUserId": "u004", "amount": 20000000, "transactionCount": 2, "dateFrom": "2025-05-18", "dateTo": "2025-08-28" },
+  { "fromUserId": "u006", "toUserId": "u002", "amount": 25000000, "transactionCount": 2, "dateFrom": "2025-06-22", "dateTo": "2025-09-30" },
+  { "fromUserId": "u006", "toUserId": "u010", "amount": 28000000, "transactionCount": 3, "dateFrom": "2025-07-08", "dateTo": "2025-10-25" },
+  { "fromUserId": "u006", "toUserId": "u005", "amount": 18000000, "transactionCount": 2, "dateFrom": "2025-08-15", "dateTo": "2025-11-05" },
+
+  { "fromUserId": "u007", "toUserId": "u003", "amount": 26000000, "transactionCount": 2, "dateFrom": "2025-06-01", "dateTo": "2025-08-18" },
+  { "fromUserId": "u007", "toUserId": "u008", "amount": 34000000, "transactionCount": 3, "dateFrom": "2025-05-05", "dateTo": "2025-09-01" },
+  { "fromUserId": "u007", "toUserId": "u010", "amount": 39000000, "transactionCount": 3, "dateFrom": "2025-07-20", "dateTo": "2025-10-10" },
+  { "fromUserId": "u007", "toUserId": "u005", "amount": 23000000, "transactionCount": 2, "dateFrom": "2025-08-08", "dateTo": "2025-10-30" },
+  { "fromUserId": "u007", "toUserId": "u001", "amount": 20000000, "transactionCount": 2, "dateFrom": "2025-09-01", "dateTo": "2025-11-20" },
+
+  { "fromUserId": "u008", "toUserId": "u006", "amount": 36000000, "transactionCount": 3, "dateFrom": "2025-02-05", "dateTo": "2025-05-28" },
+  { "fromUserId": "u008", "toUserId": "u002", "amount": 30000000, "transactionCount": 3, "dateFrom": "2025-03-20", "dateTo": "2025-07-12" },
+  { "fromUserId": "u008", "toUserId": "u004", "amount": 17000000, "transactionCount": 2, "dateFrom": "2025-06-05", "dateTo": "2025-09-08" },
+  { "fromUserId": "u008", "toUserId": "u001", "amount": 24000000, "transactionCount": 2, "dateFrom": "2025-07-25", "dateTo": "2025-10-18" },
+  { "fromUserId": "u008", "toUserId": "u007", "amount": 19000000, "transactionCount": 2, "dateFrom": "2025-08-20", "dateTo": "2025-11-10" },
+
+  { "fromUserId": "u009", "toUserId": "u004", "amount": 21000000, "transactionCount": 2, "dateFrom": "2025-04-12", "dateTo": "2025-07-30" },
+  { "fromUserId": "u009", "toUserId": "u005", "amount": 25000000, "transactionCount": 2, "dateFrom": "2025-05-25", "dateTo": "2025-09-05" },
+  { "fromUserId": "u009", "toUserId": "u007", "amount": 22000000, "transactionCount": 2, "dateFrom": "2025-06-18", "dateTo": "2025-10-01" },
+  { "fromUserId": "u009", "toUserId": "u006", "amount": 14000000, "transactionCount": 2, "dateFrom": "2025-07-30", "dateTo": "2025-10-22" },
+  { "fromUserId": "u009", "toUserId": "u003", "amount": 17000000, "transactionCount": 2, "dateFrom": "2025-08-10", "dateTo": "2025-11-15" },
+
+  { "fromUserId": "u010", "toUserId": "u007", "amount": 48000000, "transactionCount": 4, "dateFrom": "2025-06-08", "dateTo": "2025-09-25" },
+  { "fromUserId": "u010", "toUserId": "u003", "amount": 32000000, "transactionCount": 3, "dateFrom": "2025-05-15", "dateTo": "2025-08-20" },
+  { "fromUserId": "u010", "toUserId": "u005", "amount": 28000000, "transactionCount": 2, "dateFrom": "2025-07-01", "dateTo": "2025-10-05" },
+  { "fromUserId": "u010", "toUserId": "u001", "amount": 42000000, "transactionCount": 3, "dateFrom": "2025-08-12", "dateTo": "2025-11-28" },
+  { "fromUserId": "u010", "toUserId": "u008", "amount": 21000000, "transactionCount": 2, "dateFrom": "2025-09-05", "dateTo": "2025-12-15" }
+]

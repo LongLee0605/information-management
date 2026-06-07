@@ -10,12 +10,12 @@ interface TextProps {
 }
 
 const variantClasses: Record<TextVariant, string> = {
-  h1: 'text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground',
-  h2: 'text-xl sm:text-2xl font-bold tracking-tight text-foreground',
-  h3: 'text-lg font-semibold tracking-tight text-foreground',
-  body: 'text-sm sm:text-base text-foreground-soft leading-relaxed',
-  caption: 'text-xs sm:text-sm text-muted',
-  label: 'text-[11px] font-semibold uppercase tracking-[0.15em] text-muted',
+  h1: 'text-2xl font-bold text-foreground sm:text-3xl',
+  h2: 'text-xl font-bold text-foreground',
+  h3: 'text-lg font-semibold text-foreground',
+  body: 'text-sm text-foreground-soft leading-relaxed',
+  caption: 'text-xs text-muted',
+  label: 'text-xs font-semibold uppercase tracking-wide text-muted',
 };
 
 export function Text({

@@ -11,42 +11,25 @@ interface AvatarProps {
 }
 
 const sizeClasses: Record<AvatarSize, string> = {
-  sm: 'h-10 w-10',
-  md: 'h-14 w-14',
-  lg: 'h-20 w-20',
-  xl: 'h-28 w-28',
+  sm: 'h-8 w-8',
+  md: 'h-10 w-10',
+  lg: 'h-12 w-12',
+  xl: 'h-20 w-20',
 };
 
-export function Avatar({ src, alt, size = 'md', className, ring = true }: AvatarProps) {
-  const image = (
+export function Avatar({ src, alt, size = 'md', className, ring = false }: AvatarProps) {
+  return (
     <img
       src={src}
       alt={alt}
       loading="lazy"
       decoding="async"
       className={cn(
-        'h-full w-full rounded-full bg-surface-elevated object-cover',
+        'rounded-full bg-table-stripe object-cover',
+        ring ? 'ring-2 ring-primary-500 ring-offset-2' : 'border border-border',
+        sizeClasses[size],
         className,
       )}
     />
-  );
-
-  if (!ring) {
-    return (
-      <div
-        className={cn(
-          'shrink-0 overflow-hidden rounded-full border border-border',
-          sizeClasses[size],
-        )}
-      >
-        {image}
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn('avatar-ring shrink-0', sizeClasses[size])}>
-      {image}
-    </div>
   );
 }

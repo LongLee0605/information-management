@@ -1,46 +1,97 @@
-import { useUsers } from '@/hooks';
-import { UserGrid } from '@/components/organisms/UserGrid';
-import { UserGridSkeleton } from '@/components/organisms/UserGridSkeleton';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Avatar } from '@/components/atoms/Avatar';
+import { Button } from '@/components/atoms/Button';
+import { DataTable, DataTableSkeleton } from '@/components/molecules/DataTable';
 import { ErrorState } from '@/components/molecules/ErrorState';
-import { PageHeader } from '@/components/templates/PageHeader';
-import { Text } from '@/components/atoms/Text';
+import { PageToolbar } from '@/components/molecules/PageToolbar';
+import { useSelectedUserContext } from '@/context';
+import { useUsers } from '@/hooks';
+import { userAccountPath } from '@/constants';
+import type { User } from '@/types';
+import { formatCitizenId, formatDate, getCifFromUserId } from '@/utils';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const { setContextUserId } = useSelectedUserContext();
   const { users, loading, error, refetch } = useUsers();
+
+  useEffect(() => {
+    setContextUserId(null);
+  }, [setContextUserId]);
+  const columns = [
+    {
+      key: 'id',
+      header: 'Mã CIF',
+      className: 'w-24',
+      render: (user: User) => (
+        <span className="font-medium text-foreground">{getCifFromUserId(user.id)}</span>
+      ),
+    },
+    {
+      key: 'name',
+      header: 'Họ và Tên',
+      render: (user: User) => (
+        <div className="flex items-center gap-3">
+          <Avatar src={user.avatar} alt={user.fullName} size="sm" />
+          <span className="font-medium text-foreground">{user.fullName}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'citizenId',
+      header: 'Số CCCD',
+      render: (user: User) => formatCitizenId(user.citizenId),
+    },
+    {
+      key: 'dob',
+      header: 'Ngày Sinh',
+      render: (user: User) => formatDate(user.dateOfBirth),
+    },
+    {
+      key: 'occupation',
+      header: 'Nghề Nghiệp',
+      render: (user: User) => user.occupation,
+    },
+    {
+      key: 'address',
+      header: 'Địa Chỉ',
+      className: 'max-w-xs',
+      render: (user: User) => (
+        <span className="line-clamp-2">{user.address}</span>
+      ),
+    },
+  ];
 
   return (
     <>
-      <PageHeader
-        badge="Quản lý tài chính"
-        title="Danh sách người dùng"
-        description="Theo dõi thông tin cá nhân và nguồn thu chi của từng thành viên. Chọn một hồ sơ để xem phân tích chi tiết."
-      />
+      <PageToolbar
+        title="Quản Lý Khách Hàng"
+        subtitle="Danh sách thông tin khách hàng"
+      >
+        <Button variant="teal" type="button">
+          <span aria-hidden="true">+</span>
+          Thêm Mới
+        </Button>
+        <Button variant="green" type="button">
+          Lưu
+        </Button>
+      </PageToolbar>
 
-      {!loading && !error && users.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          <span className="glass-card inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
-            <span className="h-2 w-2 rounded-full bg-income animate-pulse" />
-            <Text as="span" variant="caption" className="text-foreground-soft">
-              <span className="font-bold text-accent-light">{users.length}</span> hồ sơ đang hoạt động
-            </Text>
-          </span>
-        </div>
-      )}
-
-      {loading && <UserGridSkeleton />}
+      {loading && <DataTableSkeleton rows={8} cols={6} />}
 
       {error && !loading && (
         <ErrorState message={error} onRetry={refetch} />
       )}
 
-      {!loading && !error && users.length === 0 && (
-        <div className="glass-card rounded-2xl p-16 text-center">
-          <Text variant="body">Không có người dùng nào.</Text>
-        </div>
-      )}
-
-      {!loading && !error && users.length > 0 && (
-        <UserGrid users={users} />
+      {!loading && !error && (
+        <DataTable
+          columns={columns}
+          data={users}
+          getRowKey={(user) => user.id}
+          onRowClick={(user) => navigate(userAccountPath(user.id))}
+          emptyMessage="Không có người dùng nào."
+        />
       )}
     </>
   );

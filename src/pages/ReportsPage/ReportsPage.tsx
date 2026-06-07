@@ -1,0 +1,148 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { useUser, useUserFinance } from '@/hooks';
+import { useSelectedUserContext } from '@/context';
+import { LineChartPanel } from '@/components/organisms/LineChartPanel';
+import { PieChartPanel } from '@/components/organisms/PieChartPanel';
+import { TabList } from '@/components/molecules/TabList';
+import { ReportDateFilter } from '@/components/molecules/ReportDateFilter';
+import { UserPageShell } from '@/components/templates/UserPageShell';
+import { getEffectiveAppDateRange, REPORT_TABS, PIE_COLORS, type ReportTab } from '@/constants';
+import {
+  calculateFinanceSummary,
+  filterBreakdownByDateRange,
+  filterMonthlyByDateRange,
+  formatDateRangeLabel,
+  transformBreakdownToPieChart,
+  transformMonthlyToLineChart,
+} from '@/utils/chartTransformers';
+import { formatCitizenId } from '@/utils';
+
+const DEFAULT_RANGE = getEffectiveAppDateRange();
+const DEFAULT_FROM = DEFAULT_RANGE.fromDate;
+const DEFAULT_TO = DEFAULT_RANGE.toDate;
+
+function isValidReportTab(tab: string | null): tab is ReportTab {
+  return tab === 'charts' || tab === 'sources';
+}
+
+export default function ReportsPage() {
+  const { id } = useParams<{ id: string }>();
+  const { setContextUserId } = useSelectedUserContext();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [fromDate, setFromDate] = useState<string>(DEFAULT_FROM);
+  const [toDate, setToDate] = useState<string>(DEFAULT_TO);
+
+  const tabParam = searchParams.get('tab');
+  const activeTab: ReportTab = isValidReportTab(tabParam) ? tabParam : 'charts';
+
+  const { user, loading: userLoading, error: userError, notFound, refetch } = useUser(id);
+  const {
+    monthly,
+    breakdown,
+    loading: financeLoading,
+    error: financeError,
+    refetch: refetchFinance,
+  } = useUserFinance(id);
+
+  const filteredMonthly = useMemo(
+    () => filterMonthlyByDateRange(monthly, fromDate, toDate),
+    [monthly, fromDate, toDate],
+  );
+
+  const filteredBreakdown = useMemo(
+    () => filterBreakdownByDateRange(breakdown, monthly, fromDate, toDate),
+    [breakdown, monthly, fromDate, toDate],
+  );
+
+  const lineChartData = useMemo(
+    () => transformMonthlyToLineChart(filteredMonthly),
+    [filteredMonthly],
+  );
+
+  const incomePieData = useMemo(
+    () => transformBreakdownToPieChart(filteredBreakdown, 'income', PIE_COLORS),
+    [filteredBreakdown],
+  );
+
+  const expensePieData = useMemo(
+    () => transformBreakdownToPieChart(filteredBreakdown, 'expense', PIE_COLORS),
+    [filteredBreakdown],
+  );
+
+  const filteredSummary = useMemo(
+    () => calculateFinanceSummary(filteredMonthly),
+    [filteredMonthly],
+  );
+
+  const periodLabel = formatDateRangeLabel(fromDate, toDate);
+
+  useEffect(() => {
+    if (id) {
+      setContextUserId(id);
+    }
+  }, [id, setContextUserId]);
+
+  const handleApplyDateFilter = useCallback((nextFrom: string, nextTo: string) => {
+    setFromDate(nextFrom);
+    setToDate(nextTo);
+  }, []);
+
+  const handleTabChange = useCallback(
+    (tab: ReportTab) => {
+      setSearchParams(tab === 'charts' ? {} : { tab });
+    },
+    [setSearchParams],
+  );
+
+  return (
+    <UserPageShell
+      user={user}
+      loading={userLoading || financeLoading}
+      notFound={notFound}
+      error={userError ?? financeError}
+      title="Tổng Quan Thu Chi"
+      subtitle={
+        user
+          ? `Nguồn thu chi riêng · ${user.fullName} · không gộp với khách hàng khác`
+          : undefined
+      }
+      summary={filteredSummary}
+      summaryPeriodLabel={periodLabel}
+      beforeSummary={
+        user ? (
+          <ReportDateFilter
+            key={`${fromDate}-${toDate}`}
+            citizenId={formatCitizenId(user.citizenId)}
+            fromDate={fromDate}
+            toDate={toDate}
+            onApply={handleApplyDateFilter}
+            className="mb-6"
+          />
+        ) : undefined
+      }
+      onRetry={() => {
+        refetch();
+        refetchFinance();
+      }}
+    >
+      <TabList
+        tabs={REPORT_TABS}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
+
+      <div role="tabpanel">
+        {activeTab === 'charts' ? (
+          <LineChartPanel data={lineChartData} periodLabel={periodLabel} />
+        ) : (
+          <PieChartPanel
+            incomeData={incomePieData}
+            expenseData={expensePieData}
+            periodLabel={periodLabel}
+          />
+        )}
+      </div>
+    </UserPageShell>
+  );
+}

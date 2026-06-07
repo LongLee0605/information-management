@@ -1,0 +1,1 @@
+export { UserPageShell } from './UserPageShell';

@@ -4,3 +4,16 @@ export type {
   SourceBreakdown,
   UserFinance,
 } from './finance';
+export type {
+  Transaction,
+  TransactionType,
+  TransactionWithUser,
+  PaymentMethod,
+} from './transaction';
+export type {
+  MoneyFlowNode,
+  MoneyFlowTrace,
+  MoneyFlowFilterParams,
+  MoneyFlowStats,
+  MoneyFlowSearchResult,
+} from './moneyFlow';

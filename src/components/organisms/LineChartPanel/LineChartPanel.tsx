@@ -20,71 +20,55 @@ import { cn } from '@/utils';
 interface LineChartPanelProps {
   data: LineChartPoint[];
   className?: string;
+  compact?: boolean;
+  periodLabel?: string;
 }
-
-const CHART_THEME = {
-  grid: 'rgba(255, 255, 255, 0.06)',
-  axis: '#64748b',
-  legend: '#94a3b8',
-};
 
 export const LineChartPanel = memo(function LineChartPanel({
   data,
   className,
+  compact = false,
+  periodLabel = 'Năm 2025',
 }: LineChartPanelProps) {
   const isMobile = useIsMobile();
 
   if (!data.length) {
     return (
-      <div className={cn('glass-card rounded-2xl p-6', className)}>
+      <div className={cn('dashboard-card p-6', className)}>
         <Text variant="body">Không có dữ liệu thu chi.</Text>
       </div>
     );
   }
 
   return (
-    <div className={cn('glass-card rounded-2xl p-5 sm:p-7', className)}>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <Text as="h3" variant="h3">
-            Biểu đồ thu chi theo tháng
-          </Text>
-          <Text variant="caption" className="mt-1">
-            Dữ liệu năm 2025
-          </Text>
-        </div>
-        <div className="hidden items-center gap-4 sm:flex">
-          <span className="flex items-center gap-2 text-xs text-muted">
-            <span className="h-2 w-6 rounded-full bg-income" />
-            Thu
-          </span>
-          <span className="flex items-center gap-2 text-xs text-muted">
-            <span className="h-2 w-6 rounded-full bg-expense" />
-            Chi
-          </span>
-        </div>
-      </div>
+    <div className={cn('dashboard-card p-5 sm:p-6', className)}>
+      <Text as="h3" variant="h3" className="text-base">
+        Biểu Đồ Thu / Chi Theo Tháng
+      </Text>
+      <Text variant="caption" className="mt-1">
+        Khoảng thời gian: {periodLabel}
+      </Text>
 
-      <div className="h-72 sm:h-96">
+      <div className={cn('mt-4', compact ? 'h-64' : 'h-72 sm:h-80')}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: isMobile ? 11 : 12, fill: CHART_THEME.axis }}
-              axisLine={{ stroke: CHART_THEME.grid }}
+              tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }}
+              axisLine={{ stroke: '#e2e8f0' }}
               tickLine={false}
             />
             <YAxis
               tickFormatter={formatCompactCurrency}
-              tick={{ fontSize: isMobile ? 11 : 12, fill: CHART_THEME.axis }}
+              tick={{ fontSize: isMobile ? 11 : 12, fill: '#64748b' }}
               axisLine={false}
               tickLine={false}
               width={isMobile ? 48 : 56}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend
-              wrapperStyle={{ fontSize: isMobile ? 12 : 13, color: CHART_THEME.legend }}
+              wrapperStyle={{ fontSize: isMobile ? 12 : 13 }}
               formatter={(value) => (value === 'income' ? 'Thu' : 'Chi')}
             />
             <Line
@@ -92,18 +76,18 @@ export const LineChartPanel = memo(function LineChartPanel({
               dataKey="income"
               name="income"
               stroke={CHART_COLORS.income}
-              strokeWidth={2.5}
+              strokeWidth={2}
               dot={{ r: 4, strokeWidth: 2, fill: CHART_COLORS.income }}
-              activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 6 }}
             />
             <Line
               type="monotone"
               dataKey="expense"
               name="expense"
               stroke={CHART_COLORS.expense}
-              strokeWidth={2.5}
+              strokeWidth={2}
               dot={{ r: 4, strokeWidth: 2, fill: CHART_COLORS.expense }}
-              activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 6 }}
             />
           </LineChart>
         </ResponsiveContainer>
