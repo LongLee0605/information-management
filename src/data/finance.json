@@ -1,0 +1,282 @@
+[
+  {
+    "userId": "u001",
+    "monthly": [
+      { "month": "2025-01", "income": 18000000, "expense": 14500000 },
+      { "month": "2025-02", "income": 18000000, "expense": 13800000 },
+      { "month": "2025-03", "income": 18500000, "expense": 15200000 },
+      { "month": "2025-04", "income": 18500000, "expense": 14100000 },
+      { "month": "2025-05", "income": 19000000, "expense": 16800000 },
+      { "month": "2025-06", "income": 19000000, "expense": 15500000 },
+      { "month": "2025-07", "income": 18500000, "expense": 17200000 },
+      { "month": "2025-08", "income": 18500000, "expense": 16000000 },
+      { "month": "2025-09", "income": 19000000, "expense": 14800000 },
+      { "month": "2025-10", "income": 19000000, "expense": 15300000 },
+      { "month": "2025-11", "income": 18500000, "expense": 14900000 },
+      { "month": "2025-12", "income": 20000000, "expense": 18500000 }
+    ],
+    "breakdown": [
+      { "source": "Lương giáo viên", "amount": 210000000, "type": "income" },
+      { "source": "Dạy thêm", "amount": 18000000, "type": "income" },
+      { "source": "Ăn uống", "amount": 72000000, "type": "expense" },
+      { "source": "Học phí con", "amount": 48000000, "type": "expense" },
+      { "source": "Tiền nhà", "amount": 36000000, "type": "expense" },
+      { "source": "Điện nước & internet", "amount": 18000000, "type": "expense" },
+      { "source": "Y tế & bảo hiểm", "amount": 12000000, "type": "expense" },
+      { "source": "Giải trí & mua sắm", "amount": 24000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u002",
+    "monthly": [
+      { "month": "2025-01", "income": 42000000, "expense": 28000000 },
+      { "month": "2025-02", "income": 42000000, "expense": 26500000 },
+      { "month": "2025-03", "income": 45000000, "expense": 31000000 },
+      { "month": "2025-04", "income": 45000000, "expense": 29000000 },
+      { "month": "2025-05", "income": 48000000, "expense": 35000000 },
+      { "month": "2025-06", "income": 48000000, "expense": 32000000 },
+      { "month": "2025-07", "income": 45000000, "expense": 38000000 },
+      { "month": "2025-08", "income": 45000000, "expense": 34000000 },
+      { "month": "2025-09", "income": 46000000, "expense": 30000000 },
+      { "month": "2025-10", "income": 46000000, "expense": 29500000 },
+      { "month": "2025-11", "income": 45000000, "expense": 31000000 },
+      { "month": "2025-12", "income": 55000000, "expense": 42000000 }
+    ],
+    "breakdown": [
+      { "source": "Lương bác sĩ", "amount": 480000000, "type": "income" },
+      { "source": "Khám ngoài giờ", "amount": 72000000, "type": "income" },
+      { "source": "Đầu tư chứng khoán", "amount": 24000000, "type": "income" },
+      { "source": "Ăn uống & sinh hoạt", "amount": 120000000, "type": "expense" },
+      { "source": "Y tế & chăm sóc sức khỏe", "amount": 48000000, "type": "expense" },
+      { "source": "Tiền nhà", "amount": 72000000, "type": "expense" },
+      { "source": "Du lịch & giải trí", "amount": 36000000, "type": "expense" },
+      { "source": "Đầu tư & tiết kiệm", "amount": 96000000, "type": "expense" },
+      { "source": "Giáo dục con", "amount": 42000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u003",
+    "monthly": [
+      { "month": "2025-01", "income": 28000000, "expense": 22000000 },
+      { "month": "2025-02", "income": 28000000, "expense": 19500000 },
+      { "month": "2025-03", "income": 30000000, "expense": 24000000 },
+      { "month": "2025-04", "income": 32000000, "expense": 21000000 },
+      { "month": "2025-05", "income": 35000000, "expense": 28000000 },
+      { "month": "2025-06", "income": 32000000, "expense": 25000000 },
+      { "month": "2025-07", "income": 30000000, "expense": 32000000 },
+      { "month": "2025-08", "income": 32000000, "expense": 26000000 },
+      { "month": "2025-09", "income": 33000000, "expense": 23000000 },
+      { "month": "2025-10", "income": 34000000, "expense": 24500000 },
+      { "month": "2025-11", "income": 35000000, "expense": 27000000 },
+      { "month": "2025-12", "income": 40000000, "expense": 35000000 }
+    ],
+    "breakdown": [
+      { "source": "Lương chính", "amount": 336000000, "type": "income" },
+      { "source": "Freelance", "amount": 48000000, "type": "income" },
+      { "source": "Thưởng dự án", "amount": 18000000, "type": "income" },
+      { "source": "Tiền thuê nhà", "amount": 96000000, "type": "expense" },
+      { "source": "Thiết bị công nghệ", "amount": 36000000, "type": "expense" },
+      { "source": "Ăn uống", "amount": 72000000, "type": "expense" },
+      { "source": "Di chuyển", "amount": 24000000, "type": "expense" },
+      { "source": "Học tập & khóa học", "amount": 18000000, "type": "expense" },
+      { "source": "Giải trí & du lịch", "amount": 42000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u004",
+    "monthly": [
+      { "month": "2025-01", "income": 8000000, "expense": 6500000 },
+      { "month": "2025-02", "income": 9000000, "expense": 7000000 },
+      { "month": "2025-03", "income": 15000000, "expense": 12000000 },
+      { "month": "2025-04", "income": 18000000, "expense": 14000000 },
+      { "month": "2025-05", "income": 20000000, "expense": 16000000 },
+      { "month": "2025-06", "income": 16000000, "expense": 13000000 },
+      { "month": "2025-07", "income": 12000000, "expense": 9500000 },
+      { "month": "2025-08", "income": 10000000, "expense": 8000000 },
+      { "month": "2025-09", "income": 14000000, "expense": 11000000 },
+      { "month": "2025-10", "income": 16000000, "expense": 12500000 },
+      { "month": "2025-11", "income": 18000000, "expense": 14000000 },
+      { "month": "2025-12", "income": 10000000, "expense": 8500000 }
+    ],
+    "breakdown": [
+      { "source": "Bán lúa gạo", "amount": 96000000, "type": "income" },
+      { "source": "Bán rau củ quả", "amount": 48000000, "type": "income" },
+      { "source": "Nuôi cá", "amount": 24000000, "type": "income" },
+      { "source": "Phân bón & thuốc BVTV", "amount": 48000000, "type": "expense" },
+      { "source": "Giống & vật tư", "amount": 36000000, "type": "expense" },
+      { "source": "Thuê máy & nhân công", "amount": 42000000, "type": "expense" },
+      { "source": "Sửa chữa nhà cửa", "amount": 18000000, "type": "expense" },
+      { "source": "Sinh hoạt gia đình", "amount": 54000000, "type": "expense" },
+      { "source": "Điện nước & xăng", "amount": 24000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u005",
+    "monthly": [
+      { "month": "2025-01", "income": 5000000, "expense": 4800000 },
+      { "month": "2025-02", "income": 5000000, "expense": 4500000 },
+      { "month": "2025-03", "income": 5500000, "expense": 5200000 },
+      { "month": "2025-04", "income": 5500000, "expense": 4900000 },
+      { "month": "2025-05", "income": 6000000, "expense": 5500000 },
+      { "month": "2025-06", "income": 6000000, "expense": 5800000 },
+      { "month": "2025-07", "income": 5500000, "expense": 4200000 },
+      { "month": "2025-08", "income": 5500000, "expense": 4000000 },
+      { "month": "2025-09", "income": 6000000, "expense": 6500000 },
+      { "month": "2025-10", "income": 5500000, "expense": 5000000 },
+      { "month": "2025-11", "income": 5500000, "expense": 4800000 },
+      { "month": "2025-12", "income": 7000000, "expense": 6000000 }
+    ],
+    "breakdown": [
+      { "source": "Gia đình hỗ trợ", "amount": 48000000, "type": "income" },
+      { "source": "Part-time quán cà phê", "amount": 12000000, "type": "income" },
+      { "source": "Học bổng", "amount": 6000000, "type": "income" },
+      { "source": "Học phí", "amount": 36000000, "type": "expense" },
+      { "source": "KTX & sinh hoạt phí", "amount": 24000000, "type": "expense" },
+      { "source": "Ăn uống", "amount": 30000000, "type": "expense" },
+      { "source": "Sách vở & học liệu", "amount": 12000000, "type": "expense" },
+      { "source": "Di chuyển", "amount": 6000000, "type": "expense" },
+      { "source": "Giải trí & mua sắm", "amount": 9000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u006",
+    "monthly": [
+      { "month": "2025-01", "income": 25000000, "expense": 22000000 },
+      { "month": "2025-02", "income": 28000000, "expense": 24000000 },
+      { "month": "2025-03", "income": 30000000, "expense": 26000000 },
+      { "month": "2025-04", "income": 32000000, "expense": 27000000 },
+      { "month": "2025-05", "income": 35000000, "expense": 29000000 },
+      { "month": "2025-06", "income": 30000000, "expense": 25000000 },
+      { "month": "2025-07", "income": 28000000, "expense": 24000000 },
+      { "month": "2025-08", "income": 26000000, "expense": 23000000 },
+      { "month": "2025-09", "income": 29000000, "expense": 25000000 },
+      { "month": "2025-10", "income": 31000000, "expense": 26500000 },
+      { "month": "2025-11", "income": 33000000, "expense": 28000000 },
+      { "month": "2025-12", "income": 38000000, "expense": 32000000 }
+    ],
+    "breakdown": [
+      { "source": "Doanh thu quán ăn", "amount": 360000000, "type": "income" },
+      { "source": "Đặt tiệc & catering", "amount": 24000000, "type": "income" },
+      { "source": "Nguyên liệu thực phẩm", "amount": 168000000, "type": "expense" },
+      { "source": "Lương nhân viên", "amount": 96000000, "type": "expense" },
+      { "source": "Tiền thuê mặt bằng", "amount": 72000000, "type": "expense" },
+      { "source": "Điện nước & gas", "amount": 36000000, "type": "expense" },
+      { "source": "Marketing & quảng cáo", "amount": 18000000, "type": "expense" },
+      { "source": "Sửa chữa thiết bị", "amount": 12000000, "type": "expense" },
+      { "source": "Sinh hoạt cá nhân", "amount": 36000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u007",
+    "monthly": [
+      { "month": "2025-01", "income": 14500000, "expense": 12000000 },
+      { "month": "2025-02", "income": 14500000, "expense": 11500000 },
+      { "month": "2025-03", "income": 15000000, "expense": 12800000 },
+      { "month": "2025-04", "income": 15000000, "expense": 12200000 },
+      { "month": "2025-05", "income": 15500000, "expense": 13500000 },
+      { "month": "2025-06", "income": 15500000, "expense": 13000000 },
+      { "month": "2025-07", "income": 15000000, "expense": 14000000 },
+      { "month": "2025-08", "income": 15000000, "expense": 13200000 },
+      { "month": "2025-09", "income": 15500000, "expense": 12500000 },
+      { "month": "2025-10", "income": 15500000, "expense": 12800000 },
+      { "month": "2025-11", "income": 15000000, "expense": 13000000 },
+      { "month": "2025-12", "income": 18000000, "expense": 16000000 }
+    ],
+    "breakdown": [
+      { "source": "Lương cơ bản", "amount": 168000000, "type": "income" },
+      { "source": "Thưởng hiệu suất", "amount": 12000000, "type": "income" },
+      { "source": "Ăn uống", "amount": 60000000, "type": "expense" },
+      { "source": "Tiền nhà", "amount": 48000000, "type": "expense" },
+      { "source": "Di chuyển", "amount": 18000000, "type": "expense" },
+      { "source": "Điện nước & internet", "amount": 12000000, "type": "expense" },
+      { "source": "Giáo dục con", "amount": 24000000, "type": "expense" },
+      { "source": "Y tế & bảo hiểm", "amount": 9000000, "type": "expense" },
+      { "source": "Mua sắm & giải trí", "amount": 18000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u008",
+    "monthly": [
+      { "month": "2025-01", "income": 12000000, "expense": 9500000 },
+      { "month": "2025-02", "income": 13000000, "expense": 10000000 },
+      { "month": "2025-03", "income": 14000000, "expense": 11000000 },
+      { "month": "2025-04", "income": 15000000, "expense": 11500000 },
+      { "month": "2025-05", "income": 16000000, "expense": 12000000 },
+      { "month": "2025-06", "income": 14000000, "expense": 10800000 },
+      { "month": "2025-07", "income": 13000000, "expense": 10200000 },
+      { "month": "2025-08", "income": 12000000, "expense": 9800000 },
+      { "month": "2025-09", "income": 15000000, "expense": 11800000 },
+      { "month": "2025-10", "income": 16000000, "expense": 12500000 },
+      { "month": "2025-11", "income": 17000000, "expense": 13000000 },
+      { "month": "2025-12", "income": 18000000, "expense": 14000000 }
+    ],
+    "breakdown": [
+      { "source": "Thu nhập giao hàng", "amount": 168000000, "type": "income" },
+      { "source": "Tip khách hàng", "amount": 7000000, "type": "income" },
+      { "source": "Xăng xe & bảo dưỡng", "amount": 48000000, "type": "expense" },
+      { "source": "Ăn uống", "amount": 36000000, "type": "expense" },
+      { "source": "Thuê trọ", "amount": 36000000, "type": "expense" },
+      { "source": "Điện thoại & internet", "amount": 12000000, "type": "expense" },
+      { "source": "Bảo hiểm & y tế", "amount": 6000000, "type": "expense" },
+      { "source": "Quần áo & giải trí", "amount": 18000000, "type": "expense" },
+      { "source": "Tiết kiệm", "amount": 12000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u009",
+    "monthly": [
+      { "month": "2025-01", "income": 8500000, "expense": 7200000 },
+      { "month": "2025-02", "income": 8500000, "expense": 6800000 },
+      { "month": "2025-03", "income": 8500000, "expense": 7500000 },
+      { "month": "2025-04", "income": 8500000, "expense": 7000000 },
+      { "month": "2025-05", "income": 8500000, "expense": 7800000 },
+      { "month": "2025-06", "income": 8500000, "expense": 7400000 },
+      { "month": "2025-07", "income": 8500000, "expense": 8000000 },
+      { "month": "2025-08", "income": 8500000, "expense": 7600000 },
+      { "month": "2025-09", "income": 8500000, "expense": 7100000 },
+      { "month": "2025-10", "income": 8500000, "expense": 7300000 },
+      { "month": "2025-11", "income": 8500000, "expense": 8200000 },
+      { "month": "2025-12", "income": 10000000, "expense": 9000000 }
+    ],
+    "breakdown": [
+      { "source": "Lương hưu", "amount": 96000000, "type": "income" },
+      { "source": "Con cái hỗ trợ", "amount": 6000000, "type": "income" },
+      { "source": "Lãi tiết kiệm", "amount": 3000000, "type": "income" },
+      { "source": "Thuốc & y tế", "amount": 36000000, "type": "expense" },
+      { "source": "Ăn uống", "amount": 48000000, "type": "expense" },
+      { "source": "Điện nước", "amount": 12000000, "type": "expense" },
+      { "source": "Sinh hoạt hàng ngày", "amount": 18000000, "type": "expense" },
+      { "source": "Quà tặng cháu", "amount": 6000000, "type": "expense" },
+      { "source": "Đi lại & thăm nom", "amount": 9000000, "type": "expense" }
+    ]
+  },
+  {
+    "userId": "u010",
+    "monthly": [
+      { "month": "2025-01", "income": 35000000, "expense": 25000000 },
+      { "month": "2025-02", "income": 35000000, "expense": 24000000 },
+      { "month": "2025-03", "income": 38000000, "expense": 27000000 },
+      { "month": "2025-04", "income": 38000000, "expense": 26000000 },
+      { "month": "2025-05", "income": 40000000, "expense": 30000000 },
+      { "month": "2025-06", "income": 40000000, "expense": 28000000 },
+      { "month": "2025-07", "income": 38000000, "expense": 32000000 },
+      { "month": "2025-08", "income": 38000000, "expense": 29000000 },
+      { "month": "2025-09", "income": 39000000, "expense": 27000000 },
+      { "month": "2025-10", "income": 39000000, "expense": 27500000 },
+      { "month": "2025-11", "income": 40000000, "expense": 28500000 },
+      { "month": "2025-12", "income": 55000000, "expense": 40000000 }
+    ],
+    "breakdown": [
+      { "source": "Lương ngân hàng", "amount": 420000000, "type": "income" },
+      { "source": "Thưởng quý & cuối năm", "amount": 48000000, "type": "income" },
+      { "source": "Đầu tư tài chính", "amount": 12000000, "type": "income" },
+      { "source": "Trả góp nhà", "amount": 120000000, "type": "expense" },
+      { "source": "Ăn uống & sinh hoạt", "amount": 96000000, "type": "expense" },
+      { "source": "Giáo dục con", "amount": 48000000, "type": "expense" },
+      { "source": "Du lịch & giải trí", "amount": 36000000, "type": "expense" },
+      { "source": "Đầu tư & tiết kiệm", "amount": 72000000, "type": "expense" },
+      { "source": "Bảo hiểm & y tế", "amount": 24000000, "type": "expense" },
+      { "source": "Di chuyển & xe cộ", "amount": 18000000, "type": "expense" }
+    ]
+  }
+]
