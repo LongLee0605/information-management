@@ -13,6 +13,11 @@ import { useSelectedUserContext } from '@/context';
 import type { TransactionWithUser, User } from '@/types';
 import { formatCurrency, formatDate, getCifFromUserId, isDateInRange } from '@/utils';
 
+export interface DateRangeFilter {
+  fromDate: string;
+  toDate: string;
+}
+
 interface TransactionsPanelProps {
   transactions: TransactionWithUser[];
   loading: boolean;
@@ -20,6 +25,8 @@ interface TransactionsPanelProps {
   lockedUserId?: string;
   showUserColumn?: boolean;
   userLookup?: Map<string, User>;
+  dateRange?: DateRangeFilter;
+  onDateRangeChange?: (range: DateRangeFilter) => void;
 }
 
 function normalizeSearch(value: string): string {
@@ -49,13 +56,28 @@ export function TransactionsPanel({
   lockedUserId,
   showUserColumn = !lockedUserId,
   userLookup,
+  dateRange,
+  onDateRangeChange,
 }: TransactionsPanelProps) {
   const { contextUserId, setContextUserId } = useSelectedUserContext();
   const [search, setSearch] = useState('');
   const effectiveDateRange = getEffectiveAppDateRange();
-  const [fromDate, setFromDate] = useState<string>(effectiveDateRange.fromDate);
-  const [toDate, setToDate] = useState<string>(effectiveDateRange.toDate);
+  const [internalFromDate, setInternalFromDate] = useState<string>(effectiveDateRange.fromDate);
+  const [internalToDate, setInternalToDate] = useState<string>(effectiveDateRange.toDate);
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionWithUser | null>(null);
+
+  const fromDate = dateRange?.fromDate ?? internalFromDate;
+  const toDate = dateRange?.toDate ?? internalToDate;
+
+  function updateDateRange(nextFromDate: string, nextToDate: string) {
+    if (onDateRangeChange) {
+      onDateRangeChange({ fromDate: nextFromDate, toDate: nextToDate });
+      return;
+    }
+
+    setInternalFromDate(nextFromDate);
+    setInternalToDate(nextToDate);
+  }
 
   const activeUserFilter = lockedUserId ?? contextUserId ?? 'all';
 
@@ -95,8 +117,7 @@ export function TransactionsPanel({
   function handleClearFilters() {
     const range = getEffectiveAppDateRange();
     setSearch('');
-    setFromDate(range.fromDate);
-    setToDate(range.toDate);
+    updateDateRange(range.fromDate, range.toDate);
     if (!lockedUserId) {
       setContextUserId(null);
     }
@@ -196,7 +217,7 @@ export function TransactionsPanel({
             value={fromDate}
             min={effectiveDateRange.fromDate}
             max={effectiveDateRange.toDate}
-            onChange={(event) => setFromDate(event.target.value)}
+            onChange={(event) => updateDateRange(event.target.value, toDate)}
             className="form-input"
           />
         </label>
@@ -210,7 +231,7 @@ export function TransactionsPanel({
             value={toDate}
             min={effectiveDateRange.fromDate}
             max={effectiveDateRange.toDate}
-            onChange={(event) => setToDate(event.target.value)}
+            onChange={(event) => updateDateRange(fromDate, event.target.value)}
             className="form-input"
           />
         </label>

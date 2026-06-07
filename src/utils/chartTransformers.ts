@@ -50,6 +50,27 @@ export function calculateFinanceSummary(data: MonthlyFinance[]) {
   };
 }
 
+export function calculateTransactionSummary(
+  transactions: Array<{ type: 'credit' | 'debit'; amount: number }>,
+) {
+  let totalIncome = 0;
+  let totalExpense = 0;
+
+  for (const transaction of transactions) {
+    if (transaction.type === 'credit') {
+      totalIncome += transaction.amount;
+    } else {
+      totalExpense += transaction.amount;
+    }
+  }
+
+  return {
+    totalIncome,
+    totalExpense,
+    balance: totalIncome - totalExpense,
+  };
+}
+
 function toMonthKey(date: string): string {
   return date.slice(0, 7);
 }

@@ -9,6 +9,7 @@ import {
   getAccountByCif,
   getAccountByNumber,
 } from '@/utils/accountRegistry';
+import { formatDemoDateLabel } from '@/utils/demoDate';
 
 export { getCifFromUserId, getUserIdFromCif } from '@/utils/accountRegistry';
 
@@ -20,6 +21,37 @@ function normalizeCif(value: string): string {
   return value.trim().toUpperCase();
 }
 
+function toDayIndex(date: string): number {
+  const [year, month, day] = date.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
+}
+
+function getInclusiveDayCount(fromDate: string, toDate: string): number {
+  return toDayIndex(toDate) - toDayIndex(fromDate) + 1;
+}
+
+function getDateRangeRatio(
+  nodeFrom: string,
+  nodeTo: string,
+  filterFrom: string,
+  filterTo: string,
+): number {
+  if (!rangesOverlap(nodeFrom, nodeTo, filterFrom, filterTo)) {
+    return 0;
+  }
+
+  const overlapFrom = nodeFrom > filterFrom ? nodeFrom : filterFrom;
+  const overlapTo = nodeTo < filterTo ? nodeTo : filterTo;
+  const nodeDays = getInclusiveDayCount(nodeFrom, nodeTo);
+  const overlapDays = getInclusiveDayCount(overlapFrom, overlapTo);
+
+  if (nodeDays <= 0) {
+    return overlapDays > 0 ? 1 : 0;
+  }
+
+  return overlapDays / nodeDays;
+}
+
 function rangesOverlap(
   nodeFrom: string,
   nodeTo: string,
@@ -27,6 +59,48 @@ function rangesOverlap(
   filterTo: string,
 ): boolean {
   return nodeFrom <= filterTo && filterFrom <= nodeTo;
+}
+
+function formatNodePeriodLabel(
+  transactionCount: number,
+  dateFrom: string,
+  dateTo: string,
+): string {
+  const toPeriod = (value: string) => {
+    const [, month, year] = value.split('-');
+    return `T${Number(month)}/${year.slice(2)}`;
+  };
+
+  if (dateFrom === dateTo) {
+    return `${transactionCount} GD · ${formatDemoDateLabel(dateFrom)}`;
+  }
+
+  return `${transactionCount} GD · ${toPeriod(dateFrom)} – ${toPeriod(dateTo)}`;
+}
+
+function scaleNodeForDateRange(
+  node: MoneyFlowNode,
+  fromDate: string,
+  toDate: string,
+): Pick<MoneyFlowNode, 'amount' | 'transactionCount' | 'dateFrom' | 'dateTo' | 'periodLabel'> {
+  const overlapFrom = node.dateFrom > fromDate ? node.dateFrom : fromDate;
+  const overlapTo = node.dateTo < toDate ? node.dateTo : toDate;
+  const ratio = getDateRangeRatio(node.dateFrom, node.dateTo, fromDate, toDate);
+  const baseAmount = node.amount ?? 0;
+  const baseCount = node.transactionCount ?? 0;
+  const scaledAmount = Math.max(0, Math.round(baseAmount * ratio));
+  const scaledCount =
+    baseCount > 0 && scaledAmount > 0
+      ? Math.max(1, Math.round(baseCount * ratio))
+      : 0;
+
+  return {
+    amount: scaledAmount,
+    transactionCount: scaledCount,
+    dateFrom: overlapFrom,
+    dateTo: overlapTo,
+    periodLabel: formatNodePeriodLabel(scaledCount, overlapFrom, overlapTo),
+  };
 }
 
 function filterNodeByDate(node: MoneyFlowNode, fromDate: string, toDate: string): MoneyFlowNode | null {
@@ -38,8 +112,24 @@ function filterNodeByDate(node: MoneyFlowNode, fromDate: string, toDate: string)
     .map((child) => filterNodeByDate(child, fromDate, toDate))
     .filter((child): child is MoneyFlowNode => child !== null);
 
+  if (node.level === 0) {
+    return {
+      ...node,
+      dateFrom: fromDate,
+      dateTo: toDate,
+      children: filteredChildren.length > 0 ? filteredChildren : undefined,
+    };
+  }
+
+  const scaled = scaleNodeForDateRange(node, fromDate, toDate);
+
+  if ((scaled.amount ?? 0) <= 0 && filteredChildren.length === 0) {
+    return null;
+  }
+
   return {
     ...node,
+    ...scaled,
     children: filteredChildren.length > 0 ? filteredChildren : undefined,
   };
 }
@@ -156,4 +246,8 @@ export function formatFlowAmount(amount: number): string {
     return `${Math.round(amount / 1_000_000)} Triệu`;
   }
   return new Intl.NumberFormat('vi-VN').format(amount);
+}
+
+export function formatMoneyFlowPeriodLabel(fromDate: string, toDate: string): string {
+  return `${formatDemoDateLabel(fromDate)} – ${formatDemoDateLabel(toDate)}`;
 }

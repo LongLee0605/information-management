@@ -12,6 +12,7 @@ import { getMoneyFlowTrace, searchMoneyFlow } from '@/services/moneyFlowService'
 import { getEffectiveAppDateRange } from '@/constants';
 import type { MoneyFlowSearchResult } from '@/types/moneyFlow';
 import { getCifFromUserId } from '@/utils';
+import { formatMoneyFlowPeriodLabel } from '@/utils/moneyFlowHelpers';
 import { subscribeMoneyFlowChange } from '@/utils/moneyFlowChange';
 
 const DEFAULT_DATES = getEffectiveAppDateRange();
@@ -139,10 +140,28 @@ export default function MoneyFlowTracePage() {
     };
   }, [appliedFilters, initializing, flowRevision]);
 
+  function handleFilterChange(next: MoneyFlowFilterValues) {
+    setDraftFilters((current) => {
+      const datesChanged =
+        current &&
+        (next.fromDate !== current.fromDate || next.toDate !== current.toDate);
+
+      if (datesChanged) {
+        setAppliedFilters(next);
+      }
+
+      return next;
+    });
+  }
+
   function handleSearch() {
     if (!draftFilters) return;
     setAppliedFilters({ ...draftFilters });
   }
+
+  const statsPeriodLabel = appliedFilters
+    ? formatMoneyFlowPeriodLabel(appliedFilters.fromDate, appliedFilters.toDate)
+    : undefined;
 
   function handleReset() {
     setDraftFilters({ ...defaultFilters });
@@ -174,7 +193,7 @@ export default function MoneyFlowTracePage() {
         defaultValues={defaultFilters}
         accountPlaceholder={accountPlaceholder}
         values={draftFilters}
-        onChange={setDraftFilters}
+        onChange={handleFilterChange}
         onSearch={handleSearch}
         onReset={handleReset}
         error={result?.error}
@@ -183,7 +202,10 @@ export default function MoneyFlowTracePage() {
       {searching ? (
         <Skeleton className="h-28 w-full rounded-lg" />
       ) : (
-        <MoneyFlowStatsCards stats={result?.stats ?? EMPTY_STATS} />
+        <MoneyFlowStatsCards
+          stats={result?.stats ?? EMPTY_STATS}
+          periodLabel={statsPeriodLabel}
+        />
       )}
 
       {searching ? (

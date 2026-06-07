@@ -1,1 +1,1 @@
-export { TransactionsPanel } from './TransactionsPanel';
+export { TransactionsPanel, type DateRangeFilter } from './TransactionsPanel';
