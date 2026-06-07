@@ -18,15 +18,18 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center',
+        'glass-card flex flex-col items-center justify-center rounded-2xl border-expense/20 bg-expense-muted px-6 py-14 text-center',
         className,
       )}
       role="alert"
     >
-      <Text as="h2" variant="h3" className="text-red-800">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-expense/20 text-expense">
+        !
+      </div>
+      <Text as="h2" variant="h3" className="text-expense">
         {title}
       </Text>
-      <Text variant="body" className="mt-2 max-w-md text-red-700">
+      <Text variant="body" className="mt-2 max-w-md text-foreground-soft">
         {message}
       </Text>
       {onRetry && (

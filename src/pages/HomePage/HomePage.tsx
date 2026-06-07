@@ -11,9 +11,21 @@ export default function HomePage() {
   return (
     <>
       <PageHeader
+        badge="Quản lý tài chính"
         title="Danh sách người dùng"
-        description="Quản lý thông tin và nguồn thu chi của người dùng. Nhấn vào thẻ để xem chi tiết."
+        description="Theo dõi thông tin cá nhân và nguồn thu chi của từng thành viên. Chọn một hồ sơ để xem phân tích chi tiết."
       />
+
+      {!loading && !error && users.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <span className="glass-card inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
+            <span className="h-2 w-2 rounded-full bg-income animate-pulse" />
+            <Text as="span" variant="caption" className="text-foreground-soft">
+              <span className="font-bold text-accent-light">{users.length}</span> hồ sơ đang hoạt động
+            </Text>
+          </span>
+        </div>
+      )}
 
       {loading && <UserGridSkeleton />}
 
@@ -22,18 +34,13 @@ export default function HomePage() {
       )}
 
       {!loading && !error && users.length === 0 && (
-        <div className="rounded-2xl border border-border bg-white p-12 text-center">
+        <div className="glass-card rounded-2xl p-16 text-center">
           <Text variant="body">Không có người dùng nào.</Text>
         </div>
       )}
 
       {!loading && !error && users.length > 0 && (
-        <>
-          <Text variant="caption" className="mb-4 block">
-            Tổng cộng {users.length} người dùng
-          </Text>
-          <UserGrid users={users} />
-        </>
+        <UserGrid users={users} />
       )}
     </>
   );

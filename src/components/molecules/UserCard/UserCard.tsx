@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Avatar } from '@/components/atoms/Avatar';
 import { Text } from '@/components/atoms/Text';
 import { userDetailPath } from '@/constants';
-import { formatCitizenId } from '@/utils';
+import { formatCitizenId, formatCurrency } from '@/utils';
 import type { User } from '@/types';
 import { cn } from '@/utils';
 
@@ -17,23 +17,38 @@ export const UserCard = memo(function UserCard({ user, className }: UserCardProp
     <Link
       to={userDetailPath(user.id)}
       className={cn(
-        'group flex flex-col items-center rounded-2xl border border-border bg-white p-5 shadow-sm',
-        'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-500 hover:shadow-md',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+        'group glass-card glass-card-hover block rounded-2xl p-6',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         className,
       )}
       aria-label={`Xem chi tiết ${user.fullName}`}
     >
-      <Avatar src={user.avatar} alt={user.fullName} size="lg" />
-      <Text as="h3" variant="h3" className="mt-4 text-center">
-        {user.fullName}
-      </Text>
-      <Text variant="caption" className="mt-1 text-center">
-        CCCD: {formatCitizenId(user.citizenId)}
-      </Text>
-      <Text variant="caption" className="mt-2 text-center text-primary-600">
-        {user.occupation}
-      </Text>
+      <div className="flex flex-col items-center text-center">
+        <div className="transition-transform duration-300 group-hover:scale-105">
+          <Avatar src={user.avatar} alt={user.fullName} size="lg" />
+        </div>
+
+        <Text as="h3" variant="h3" className="mt-5 group-hover:text-accent-light transition-colors">
+          {user.fullName}
+        </Text>
+
+        <Text variant="caption" className="mt-2 font-mono text-[11px] tracking-wide">
+          {formatCitizenId(user.citizenId)}
+        </Text>
+
+        <span className="mt-4 inline-flex rounded-full border border-accent/20 bg-accent-muted px-3 py-1 text-xs font-medium text-accent-light">
+          {user.occupation}
+        </span>
+
+        <Text variant="caption" className="mt-4 text-muted">
+          TB {formatCurrency(user.monthlyIncomeAvg)}/tháng
+        </Text>
+      </div>
+
+      <div className="mt-5 flex items-center justify-center gap-1 text-xs font-medium text-primary-500 opacity-0 transition-opacity group-hover:opacity-100">
+        Xem chi tiết
+        <span aria-hidden="true">→</span>
+      </div>
     </Link>
   );
 });

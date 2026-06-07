@@ -7,6 +7,7 @@ interface AvatarProps {
   alt: string;
   size?: AvatarSize;
   className?: string;
+  ring?: boolean;
 }
 
 const sizeClasses: Record<AvatarSize, string> = {
@@ -16,18 +17,36 @@ const sizeClasses: Record<AvatarSize, string> = {
   xl: 'h-28 w-28',
 };
 
-export function Avatar({ src, alt, size = 'md', className }: AvatarProps) {
-  return (
+export function Avatar({ src, alt, size = 'md', className, ring = true }: AvatarProps) {
+  const image = (
     <img
       src={src}
       alt={alt}
       loading="lazy"
       decoding="async"
       className={cn(
-        'rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm',
-        sizeClasses[size],
+        'h-full w-full rounded-full bg-surface-elevated object-cover',
         className,
       )}
     />
+  );
+
+  if (!ring) {
+    return (
+      <div
+        className={cn(
+          'shrink-0 overflow-hidden rounded-full border border-border',
+          sizeClasses[size],
+        )}
+      >
+        {image}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('avatar-ring shrink-0', sizeClasses[size])}>
+      {image}
+    </div>
   );
 }

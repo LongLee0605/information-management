@@ -16,19 +16,19 @@ export const DETAIL_TABS: { key: DetailTab; label: string }[] = [
 ];
 
 export const CHART_COLORS = {
-  income: '#10b981',
-  expense: '#ef4444',
+  income: '#2dd4bf',
+  expense: '#fb7185',
 } as const;
 
 export const PIE_COLORS = [
-  '#3b82f6',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#06b6d4',
-  '#84cc16',
+  '#818cf8',
+  '#2dd4bf',
+  '#c9a962',
+  '#fb7185',
+  '#a78bfa',
+  '#38bdf8',
+  '#f472b6',
+  '#34d399',
 ] as const;
 
 export const MOCK_DELAY_MS = 200;

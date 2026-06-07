@@ -25,11 +25,9 @@ function PieChartTooltip({ active, payload, total }: PieChartTooltipProps) {
   const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
 
   return (
-    <div className="rounded-lg border border-border bg-white px-3 py-2 shadow-lg">
-      <p className="text-sm font-medium text-slate-900">{item.name}</p>
-      <p className="text-sm font-semibold text-primary-700">
-        {formatCurrency(value)}
-      </p>
+    <div className="rounded-xl border border-border-strong bg-surface-elevated px-4 py-3 shadow-xl backdrop-blur-xl">
+      <p className="text-sm font-medium text-foreground">{item.name}</p>
+      <p className="text-sm font-bold text-accent-light">{formatCurrency(value)}</p>
       <p className="text-xs text-muted">{percent}% tổng</p>
     </div>
   );
@@ -46,22 +44,22 @@ function PieLegend({ data }: PieLegendProps) {
   );
 
   return (
-    <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-2">
+    <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-x-4">
       {data.map((item) => {
         const percent = total > 0 ? ((item.value / total) * 100).toFixed(0) : '0';
 
         return (
           <li
             key={item.name}
-            className="flex min-w-0 items-start gap-2 text-sm text-slate-700"
+            className="flex min-w-0 items-center gap-2.5 rounded-xl border border-border bg-surface/50 px-3 py-2 text-sm"
           >
             <span
-              className="mt-1 h-3 w-3 shrink-0 rounded-full"
+              className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/10"
               style={{ backgroundColor: item.fill }}
               aria-hidden="true"
             />
-            <span className="min-w-0 flex-1 leading-snug">{item.name}</span>
-            <span className="shrink-0 font-semibold tabular-nums text-slate-900">
+            <span className="min-w-0 flex-1 truncate text-foreground-soft">{item.name}</span>
+            <span className="shrink-0 font-bold tabular-nums text-accent-light">
               {percent}%
             </span>
           </li>
@@ -84,7 +82,7 @@ function SinglePie({ title, data }: SinglePieProps) {
 
   if (!data.length) {
     return (
-      <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
+      <div className="glass-card rounded-2xl p-5 sm:p-7">
         <Text as="h3" variant="h3" className="mb-4">
           {title}
         </Text>
@@ -94,13 +92,16 @@ function SinglePie({ title, data }: SinglePieProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
-      <Text as="h3" variant="h3" className="mb-4">
+    <div className="glass-card rounded-2xl p-5 sm:p-7">
+      <Text as="h3" variant="h3" className="mb-1">
         {title}
+      </Text>
+      <Text variant="caption" className="mb-5">
+        Phân bổ theo tỷ lệ phần trăm
       </Text>
 
       <div className="mx-auto w-full max-w-md">
-        <div className="aspect-square max-h-64 w-full sm:max-h-72">
+        <div className="aspect-square max-h-60 w-full sm:max-h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <Pie
@@ -109,10 +110,10 @@ function SinglePie({ title, data }: SinglePieProps) {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                innerRadius={0}
+                innerRadius="45%"
                 outerRadius="80%"
-                paddingAngle={2}
-                stroke="#fff"
+                paddingAngle={3}
+                stroke="#111827"
                 strokeWidth={2}
                 label={false}
                 labelLine={false}
@@ -146,7 +147,7 @@ export const PieChartPanel = memo(function PieChartPanel({
   return (
     <div
       className={cn(
-        'grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6',
+        'grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6',
         className,
       )}
     >

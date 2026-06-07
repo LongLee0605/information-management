@@ -10,18 +10,30 @@ interface StatCardProps {
   className?: string;
 }
 
-const variantClasses: Record<StatVariant, string> = {
-  default: 'border-border',
-  income: 'border-emerald-200 bg-emerald-50',
-  expense: 'border-red-200 bg-red-50',
-  balance: 'border-blue-200 bg-blue-50',
-};
-
-const valueClasses: Record<StatVariant, string> = {
-  default: 'text-slate-900',
-  income: 'text-emerald-700',
-  expense: 'text-red-700',
-  balance: 'text-blue-700',
+const variantStyles: Record<
+  StatVariant,
+  { card: string; value: string; glow: string }
+> = {
+  default: {
+    card: 'border-border',
+    value: 'text-foreground',
+    glow: '',
+  },
+  income: {
+    card: 'border-income/20 bg-income-muted',
+    value: 'text-income',
+    glow: 'from-income/10',
+  },
+  expense: {
+    card: 'border-expense/20 bg-expense-muted',
+    value: 'text-expense',
+    glow: 'from-expense/10',
+  },
+  balance: {
+    card: 'border-balance/20 bg-balance-muted',
+    value: 'text-balance',
+    glow: 'from-balance/10',
+  },
 };
 
 export function StatCard({
@@ -30,22 +42,32 @@ export function StatCard({
   variant = 'default',
   className,
 }: StatCardProps) {
+  const styles = variantStyles[variant];
+
   return (
     <div
       className={cn(
-        'rounded-xl border bg-white p-4 sm:p-5',
-        variantClasses[variant],
+        'glass-card relative overflow-hidden rounded-2xl p-5 sm:p-6',
+        styles.card,
         className,
       )}
     >
-      <Text variant="label">{label}</Text>
-      <Text
-        as="p"
-        variant="h3"
-        className={cn('mt-2 break-words', valueClasses[variant])}
-      >
-        {formatCurrency(value)}
-      </Text>
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-0 bg-linear-to-br to-transparent opacity-60',
+          styles.glow,
+        )}
+      />
+      <div className="relative">
+        <Text variant="label">{label}</Text>
+        <Text
+          as="p"
+          variant="h2"
+          className={cn('mt-3 break-words text-xl sm:text-2xl', styles.value)}
+        >
+          {formatCurrency(value)}
+        </Text>
+      </div>
     </div>
   );
 }

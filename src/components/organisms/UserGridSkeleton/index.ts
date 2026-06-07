@@ -1,1 +1,1 @@
-export { UserGridSkeleton, UserGridWithData } from './UserGridSkeleton';
+export { UserGridSkeleton } from './UserGridSkeleton';

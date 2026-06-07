@@ -7,9 +7,9 @@ interface ProfileFieldProps {
 
 export function ProfileField({ label, value }: ProfileFieldProps) {
   return (
-    <div className="rounded-xl border border-border bg-white p-4">
+    <div className="glass-card glass-card-hover rounded-2xl p-5 transition-all">
       <Text variant="label">{label}</Text>
-      <Text as="dd" variant="body" className="mt-1 font-medium text-slate-900">
+      <Text as="dd" variant="body" className="mt-2 font-medium text-foreground">
         {value}
       </Text>
     </div>

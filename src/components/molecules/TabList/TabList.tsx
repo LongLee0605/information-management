@@ -17,7 +17,7 @@ export function TabList({ tabs, activeTab, onTabChange, className }: TabListProp
   return (
     <div
       className={cn(
-        'flex gap-1 overflow-x-auto border-b border-border pb-px scrollbar-thin',
+        'glass-card inline-flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl p-1.5 sm:w-auto',
         className,
       )}
       role="tablist"
@@ -36,11 +36,11 @@ export function TabList({ tabs, activeTab, onTabChange, className }: TabListProp
             id={`tab-${tab.key}`}
             onClick={() => onTabChange(tab.key)}
             className={cn(
-              'shrink-0 rounded-t-lg px-4 py-2.5 text-sm font-medium transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+              'shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               isActive
-                ? 'border-b-2 border-primary-600 bg-white text-primary-700'
-                : 'text-muted hover:bg-slate-50 hover:text-slate-900',
+                ? 'bg-linear-to-r from-accent/20 to-primary-500/10 text-accent-light shadow-inner ring-1 ring-accent/20'
+                : 'text-muted hover:bg-surface-elevated hover:text-foreground-soft',
             )}
           >
             {tab.label}

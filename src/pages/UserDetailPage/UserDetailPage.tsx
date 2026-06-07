@@ -92,14 +92,19 @@ export default function UserDetailPage() {
 
   if (notFound) {
     return (
-      <div className="flex flex-col items-center py-16 text-center">
-        <Text as="h1" variant="h1">
-          404
+      <div className="flex flex-col items-center py-20 text-center">
+        <div className="glass-card mb-6 flex h-24 w-24 items-center justify-center rounded-2xl">
+          <Text as="span" variant="h1" className="gradient-text-accent text-5xl">
+            404
+          </Text>
+        </div>
+        <Text as="h1" variant="h2">
+          Không tìm thấy người dùng
         </Text>
-        <Text variant="body" className="mt-2">
-          Không tìm thấy người dùng.
+        <Text variant="body" className="mt-2 max-w-sm text-muted">
+          Hồ sơ bạn tìm kiếm không tồn tại hoặc đã bị xóa.
         </Text>
-        <Link to={ROUTES.HOME} className="mt-6">
+        <Link to={ROUTES.HOME} className="mt-8">
           <Button variant="primary">Về trang chủ</Button>
         </Link>
       </div>
@@ -118,11 +123,12 @@ export default function UserDetailPage() {
   return (
     <DetailLayout>
       <PageHeader
+        badge="Hồ sơ chi tiết"
         title={user.fullName}
         description={`${user.occupation} · CCCD ${user.citizenId}`}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
         <StatCard label="Tổng thu năm 2025" value={summary.totalIncome} variant="income" />
         <StatCard label="Tổng chi năm 2025" value={summary.totalExpense} variant="expense" />
         <StatCard label="Chênh lệch" value={summary.balance} variant="balance" />
