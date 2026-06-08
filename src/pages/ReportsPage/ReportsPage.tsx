@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useUser, useUserFinance } from '@/hooks';
+import { useCanonicalUserRoute, useUser, useUserFinance } from '@/hooks';
 import { useSelectedUserContext } from '@/context';
 import { LineChartPanel } from '@/components/organisms/LineChartPanel';
 import { PieChartPanel } from '@/components/organisms/PieChartPanel';
@@ -36,7 +36,8 @@ export default function ReportsPage() {
   const tabParam = searchParams.get('tab');
   const activeTab: ReportTab = isValidReportTab(tabParam) ? tabParam : 'charts';
 
-  const { user, loading: userLoading, error: userError, notFound, refetch } = useUser(id);
+  useCanonicalUserRoute();
+  const { user, userId, loading: userLoading, error: userError, notFound, refetch } = useUser(id);
   const {
     monthly,
     breakdown,
@@ -78,10 +79,10 @@ export default function ReportsPage() {
   const periodLabel = formatDateRangeLabel(fromDate, toDate);
 
   useEffect(() => {
-    if (id) {
-      setContextUserId(id);
+    if (userId) {
+      setContextUserId(userId);
     }
-  }, [id, setContextUserId]);
+  }, [userId, setContextUserId]);
 
   const handleApplyDateFilter = useCallback((nextFrom: string, nextTo: string) => {
     setFromDate(nextFrom);

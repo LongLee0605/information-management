@@ -1,3 +1,6 @@
+import { useMemo, useState } from 'react';
+import { Pagination } from '@/components/molecules/Pagination';
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
 import { cn } from '@/utils';
 
 interface DataTableColumn<T> {
@@ -14,18 +17,49 @@ interface DataTableProps<T> {
   getRowKey: (row: T, index: number) => string;
   className?: string;
   emptyMessage?: string;
+  pageSize?: number;
+  paginate?: boolean;
+  paginationResetKey?: string | number;
+  itemLabel?: string;
 }
 
-export function DataTable<T>({
+interface DataTableBodyProps<T> {
+  columns: DataTableColumn<T>[];
+  data: T[];
+  onRowClick?: (row: T, index: number) => void;
+  getRowKey: (row: T, index: number) => string;
+  emptyMessage: string;
+  pageSize: number;
+  paginate: boolean;
+  itemLabel: string;
+}
+
+function DataTableBody<T>({
   columns,
   data,
   onRowClick,
   getRowKey,
-  className,
-  emptyMessage = 'Không có dữ liệu.',
-}: DataTableProps<T>) {
+  emptyMessage,
+  pageSize,
+  paginate,
+  itemLabel,
+}: DataTableBodyProps<T>) {
+  const [page, setPage] = useState(1);
+  const shouldPaginate = paginate && data.length > pageSize;
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const visibleData = useMemo(() => {
+    if (!shouldPaginate) {
+      return data;
+    }
+
+    const start = (currentPage - 1) * pageSize;
+    return data.slice(start, start + pageSize);
+  }, [data, shouldPaginate, currentPage, pageSize]);
+
   return (
-    <div className={cn('dashboard-card overflow-hidden', className)}>
+    <>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
@@ -41,7 +75,7 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {data.length === 0 ? (
+            {visibleData.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
@@ -51,13 +85,13 @@ export function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              data.map((row, index) => (
+              visibleData.map((row, index) => (
                 <tr
                   key={getRowKey(row, index)}
                   onClick={onRowClick ? () => onRowClick(row, index) : undefined}
                   className={cn(
                     index % 2 === 0 ? 'bg-table-stripe' : 'bg-table-stripe-alt',
-                    onRowClick && 'cursor-pointer hover:bg-blue-50',
+                    onRowClick && 'customer-table-row cursor-pointer',
                   )}
                 >
                   {columns.map((col) => (
@@ -74,6 +108,46 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
+
+      {shouldPaginate && (
+        <Pagination
+          page={currentPage}
+          totalPages={totalPages}
+          totalItems={data.length}
+          pageSize={pageSize}
+          itemLabel={itemLabel}
+          onPageChange={setPage}
+        />
+      )}
+    </>
+  );
+}
+
+export function DataTable<T>({
+  columns,
+  data,
+  onRowClick,
+  getRowKey,
+  className,
+  emptyMessage = 'Không có dữ liệu.',
+  pageSize = DEFAULT_PAGE_SIZE,
+  paginate = true,
+  paginationResetKey = '',
+  itemLabel = 'mục',
+}: DataTableProps<T>) {
+  return (
+    <div className={cn('dashboard-card overflow-hidden', className)}>
+      <DataTableBody
+        key={paginationResetKey}
+        columns={columns}
+        data={data}
+        onRowClick={onRowClick}
+        getRowKey={getRowKey}
+        emptyMessage={emptyMessage}
+        pageSize={pageSize}
+        paginate={paginate}
+        itemLabel={itemLabel}
+      />
     </div>
   );
 }

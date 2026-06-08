@@ -249,34 +249,5 @@
       { "source": "Quà tặng cháu", "amount": 6000000, "type": "expense" },
       { "source": "Đi lại & thăm nom", "amount": 9000000, "type": "expense" }
     ]
-  },
-  {
-    "userId": "u010",
-    "monthly": [
-      { "month": "2025-01", "income": 35000000, "expense": 25000000 },
-      { "month": "2025-02", "income": 35000000, "expense": 24000000 },
-      { "month": "2025-03", "income": 38000000, "expense": 27000000 },
-      { "month": "2025-04", "income": 38000000, "expense": 26000000 },
-      { "month": "2025-05", "income": 40000000, "expense": 30000000 },
-      { "month": "2025-06", "income": 40000000, "expense": 28000000 },
-      { "month": "2025-07", "income": 38000000, "expense": 32000000 },
-      { "month": "2025-08", "income": 38000000, "expense": 29000000 },
-      { "month": "2025-09", "income": 39000000, "expense": 27000000 },
-      { "month": "2025-10", "income": 39000000, "expense": 27500000 },
-      { "month": "2025-11", "income": 40000000, "expense": 28500000 },
-      { "month": "2025-12", "income": 55000000, "expense": 40000000 }
-    ],
-    "breakdown": [
-      { "source": "Lương ngân hàng", "amount": 420000000, "type": "income" },
-      { "source": "Thưởng quý & cuối năm", "amount": 48000000, "type": "income" },
-      { "source": "Đầu tư tài chính", "amount": 12000000, "type": "income" },
-      { "source": "Trả góp nhà", "amount": 120000000, "type": "expense" },
-      { "source": "Ăn uống & sinh hoạt", "amount": 96000000, "type": "expense" },
-      { "source": "Giáo dục con", "amount": 48000000, "type": "expense" },
-      { "source": "Du lịch & giải trí", "amount": 36000000, "type": "expense" },
-      { "source": "Đầu tư & tiết kiệm", "amount": 72000000, "type": "expense" },
-      { "source": "Bảo hiểm & y tế", "amount": 24000000, "type": "expense" },
-      { "source": "Di chuyển & xe cộ", "amount": 18000000, "type": "expense" }
-    ]
   }
 ]

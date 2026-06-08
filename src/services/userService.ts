@@ -1,13 +1,62 @@
 import financeData from '@/data/finance.json';
 import usersData from '@/data/users.json';
-import type { User, UserFinance } from '@/types';
+import type { CreateUserInput, User, UserFinance } from '@/types';
 import { MOCK_DELAY_MS } from '@/constants';
+import customerBankAccountsData from '@/data/customerBankAccounts.json';
+import type { CustomerBankAccount } from '@/types';
+import { invalidateAccountRegistryCache } from '@/utils/accountRegistry';
+import { parseBirthDateFromCitizenId } from '@/utils/avatar';
+import {
+  appendRuntimeCustomerBankAccounts,
+  loadRuntimeCustomerBankAccounts,
+} from '@/utils/customerAccountRuntimeStore';
 import { calculateMonthlyIncomeAverage, expandMonthlyToAppYears } from '@/utils/financeSync';
-import { delay } from '@/utils';
+import { markUserDeleted, isUserDeleted } from '@/utils/deletedUsersRuntimeStore';
+import { removeRuntimeAccountsByUserId } from '@/utils/customerAccountRuntimeStore';
+import {
+  appendRuntimeUser,
+  loadRuntimeUsers,
+  notifyUserChange,
+  removeRuntimeUser,
+  subscribeUserChange,
+} from '@/utils/userRuntimeStore';
+import { syncBirthDateFromCitizenId } from '@/utils/userBirthDate';
+import { createUniqueAvatarUrl, delay, getAvatarUrl } from '@/utils';
 
-const users = usersData as User[];
+const baseUsers = syncUsersBirthDatesFromJson(usersData as User[]);
 const finances = financeData as UserFinance[];
+const baseAccounts = customerBankAccountsData as CustomerBankAccount[];
 const financeByUserId = new Map(finances.map((item) => [item.userId, item]));
+
+let usersListCache: User[] | null = null;
+const usersByIdCache = new Map<string, User>();
+
+function syncUsersBirthDatesFromJson(users: User[]): User[] {
+  return users.map(syncBirthDateFromCitizenId);
+}
+
+function invalidateUsersCache(): void {
+  usersListCache = null;
+  usersByIdCache.clear();
+}
+
+subscribeUserChange(invalidateUsersCache);
+
+function getAllUsersRaw(): User[] {
+  if (usersListCache) {
+    return usersListCache;
+  }
+
+  usersListCache = [...baseUsers, ...loadRuntimeUsers()]
+    .filter((user) => !isUserDeleted(user.id))
+    .map(syncBirthDateFromCitizenId);
+
+  for (const user of usersListCache) {
+    usersByIdCache.set(user.id, user);
+  }
+
+  return usersListCache;
+}
 
 function enrichUser(user: User): User {
   const finance = financeByUserId.get(user.id);
@@ -22,13 +71,166 @@ function enrichUser(user: User): User {
   };
 }
 
+function nextUserId(existingUsers: User[]): string {
+  const max = existingUsers.reduce((currentMax, user) => {
+    const value = Number.parseInt(user.id.replace(/\D/g, ''), 10);
+    return value > currentMax ? value : currentMax;
+  }, 0);
+
+  return `u${String(max + 1).padStart(3, '0')}`;
+}
+
+function nextCif(existingAccounts: CustomerBankAccount[]): string {
+  const values = existingAccounts
+    .map((account) => Number.parseInt(account.cif.replace(/\D/g, ''), 10))
+    .filter((value) => !Number.isNaN(value));
+
+  const max = values.length > 0 ? Math.max(...values) : 26_410_000;
+  return String(max + 1);
+}
+
+function generateAccountNumber(existingNumbers: Set<string>): string {
+  let candidate = String(Math.floor(10_000_000_000 + Math.random() * 90_000_000_000));
+  while (existingNumbers.has(candidate)) {
+    candidate = String(Math.floor(10_000_000_000 + Math.random() * 90_000_000_000));
+  }
+  return candidate;
+}
+
 export async function getUsers(): Promise<User[]> {
   await delay(MOCK_DELAY_MS);
-  return users.map(enrichUser);
+  return getAllUsersRaw().map(enrichUser);
 }
 
 export async function getUserById(id: string): Promise<User | null> {
   await delay(MOCK_DELAY_MS);
-  const user = users.find((item) => item.id === id);
+  const user = usersByIdCache.get(id) ?? getAllUsersRaw().find((item) => item.id === id);
   return user ? enrichUser(user) : null;
+}
+
+export async function createUser(input: CreateUserInput): Promise<User> {
+  await delay(MOCK_DELAY_MS);
+
+  const allUsers = getAllUsersRaw();
+  if (allUsers.some((user) => user.citizenId === input.citizenId)) {
+    throw new Error('Số Căn cước công dân đã tồn tại');
+  }
+
+  const id = nextUserId(allUsers);
+  const existingAccounts = [
+    ...baseAccounts,
+    ...loadRuntimeCustomerBankAccounts(),
+  ];
+  const cif = nextCif(existingAccounts);
+  const avatar = createUniqueAvatarUrl({
+    fullName: input.fullName,
+    gender: input.gender,
+    userId: id,
+    citizenId: input.citizenId,
+    existingAvatars: allUsers.map((user) => user.avatar).filter(Boolean),
+  }) || getAvatarUrl(`${id}-${input.citizenId}`, input.gender);
+  const dateOfBirth = parseBirthDateFromCitizenId(input.citizenId) ?? input.dateOfBirth;
+  const user: User = {
+    id,
+    avatar,
+    fullName: input.fullName,
+    citizenId: input.citizenId,
+    dateOfBirth,
+    gender: input.gender,
+    phone: '',
+    email: '',
+    address: input.address,
+    workplace: '—',
+    maritalStatus: '—',
+    education: '—',
+    monthlyIncomeAvg: 0,
+  };
+
+  appendRuntimeUser(user);
+  invalidateUsersCache();
+
+  const existingNumbers = new Set([
+    ...baseAccounts.map((account) => account.accountNumber),
+    ...loadRuntimeCustomerBankAccounts().map((account) => account.accountNumber),
+  ]);
+
+  const paymentNumber = generateAccountNumber(existingNumbers);
+  existingNumbers.add(paymentNumber);
+  const savingsNumber = generateAccountNumber(existingNumbers);
+  existingNumbers.add(savingsNumber);
+  const debitNumber = generateAccountNumber(existingNumbers);
+
+  appendRuntimeCustomerBankAccounts([
+    {
+      id: `acc-${id}-payment`,
+      userId: id,
+      cif,
+      accountNumber: paymentNumber,
+      accountType: 'payment',
+      accountTypeLabel: 'Tài khoản thanh toán',
+      balance: 10_000_000,
+      frozenBalance: 0,
+      status: 'active',
+      bank: 'OCB',
+      bankBadgeClass: 'bg-orange-500 text-white',
+      isPrimary: true,
+    },
+    {
+      id: `acc-${id}-savings`,
+      userId: id,
+      cif,
+      accountNumber: savingsNumber,
+      accountType: 'savings',
+      accountTypeLabel: 'Tài khoản tiết kiệm',
+      balance: 0,
+      frozenBalance: 0,
+      status: 'active',
+      bank: 'OCB',
+      bankBadgeClass: 'bg-orange-500 text-white',
+    },
+    {
+      id: `acc-${id}-debit`,
+      userId: id,
+      cif,
+      accountNumber: debitNumber,
+      accountType: 'debit',
+      accountTypeLabel: 'Tài khoản ghi nợ',
+      balance: 0,
+      frozenBalance: 0,
+      status: 'active',
+      bank: 'OCB',
+      bankBadgeClass: 'bg-orange-500 text-white',
+    },
+  ]);
+
+  invalidateAccountRegistryCache();
+  notifyUserChange();
+
+  return enrichUser(user);
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await delay(MOCK_DELAY_MS);
+
+  if (isUserDeleted(userId)) {
+    throw new Error('Không tìm thấy khách hàng.');
+  }
+
+  const user = baseUsers.find((item) => item.id === userId)
+    ?? loadRuntimeUsers().find((item) => item.id === userId);
+
+  if (!user) {
+    throw new Error('Không tìm thấy khách hàng.');
+  }
+
+  const isRuntimeUser = loadRuntimeUsers().some((item) => item.id === userId);
+  if (isRuntimeUser) {
+    removeRuntimeUser(userId);
+  }
+
+  removeRuntimeAccountsByUserId(userId);
+  markUserDeleted(userId);
+  invalidateUsersCache();
+  invalidateAccountRegistryCache();
+  notifyUserChange();
 }

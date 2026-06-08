@@ -1,7 +1,7 @@
 import { Avatar } from '@/components/atoms/Avatar';
 import type { MoneyFlowNode } from '@/types/moneyFlow';
 import { formatFlowAmount } from '@/utils/moneyFlowHelpers';
-import { cn } from '@/utils';
+import { cn, getAvatarUrl } from '@/utils';
 
 interface MoneyFlowDiagramProps {
   root: MoneyFlowNode;
@@ -134,7 +134,7 @@ function FlowNodeCard({ node }: { node: MoneyFlowNode }) {
 
       <div className="mx-auto mb-2 flex justify-center">
         <Avatar
-          src={node.avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${node.id}`}
+          src={node.avatar ?? getAvatarUrl(node.id, 'male')}
           alt={node.fullName}
           size={node.level >= 2 ? 'sm' : 'md'}
         />

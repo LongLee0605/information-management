@@ -5,6 +5,7 @@ import {
   APP_SUBTITLE,
   ROUTES,
   userAccountPath,
+  userProfilePath,
   userReportsPath,
   userTransactionsPath,
 } from '@/constants';
@@ -26,6 +27,15 @@ function AccountIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="2" y="5" width="20" height="14" rx="2" />
       <path d="M2 10h20" />
+    </svg>
+  );
+}
+
+function ProfileIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
     </svg>
   );
 }
@@ -123,17 +133,23 @@ function DisabledNavItem({ icon, label }: { icon: React.ReactNode; label: string
 
 function isTransactionsRoute(pathname: string, userId: string | null): boolean {
   if (userId) {
-    return pathname.startsWith(`/users/${userId}/transactions`);
+    return pathname.startsWith(userTransactionsPath(userId));
   }
   return pathname.startsWith('/transactions');
+}
+
+function isAccountRoute(pathname: string): boolean {
+  return pathname === ROUTES.ACCOUNTS || /^\/users\/[^/]+$/.test(pathname);
 }
 
 export function Sidebar() {
   const location = useLocation();
   const userId = useActiveUserId();
 
-  const isAccountPage = Boolean(
-    userId && location.pathname === userAccountPath(userId),
+  const isAccountPage = isAccountRoute(location.pathname);
+  const accountNavTarget = userId ? userAccountPath(userId) : ROUTES.ACCOUNTS;
+  const isProfilePage = Boolean(
+    userId && location.pathname === userProfilePath(userId),
   );
   const isTransactionsPage = isTransactionsRoute(location.pathname, userId);
   const isReportsPage = Boolean(
@@ -160,24 +176,40 @@ export function Sidebar() {
           label="Khách Hàng"
         />
 
+        <NavLink
+          to={accountNavTarget}
+          end
+          className={() =>
+            cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              isAccountPage
+                ? 'bg-sidebar-active text-white'
+                : 'text-sidebar-text hover:bg-sidebar-hover',
+            )
+          }
+        >
+          <AccountIcon className="h-5 w-5 shrink-0" />
+          Tài Khoản
+        </NavLink>
+
         {userId ? (
           <NavLink
-            to={userAccountPath(userId)}
+            to={userProfilePath(userId)}
             end
             className={() =>
               cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                isAccountPage
+                isProfilePage
                   ? 'bg-sidebar-active text-white'
                   : 'text-sidebar-text hover:bg-sidebar-hover',
               )
             }
           >
-            <AccountIcon className="h-5 w-5 shrink-0" />
-            Tài Khoản
+            <ProfileIcon className="h-5 w-5 shrink-0" />
+            Hồ Sơ
           </NavLink>
         ) : (
-          <DisabledNavItem icon={<AccountIcon className="h-5 w-5" />} label="Tài Khoản" />
+          <DisabledNavItem icon={<ProfileIcon className="h-5 w-5" />} label="Hồ Sơ" />
         )}
 
         <NavLink

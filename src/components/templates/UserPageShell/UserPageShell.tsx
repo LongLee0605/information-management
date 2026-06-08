@@ -7,7 +7,7 @@ import { PageToolbar } from '@/components/molecules/PageToolbar';
 import { StatCard } from '@/components/molecules/StatCard';
 import { ROUTES } from '@/constants';
 import type { User } from '@/types';
-import { formatCitizenId } from '@/utils';
+import { formatCitizenId, formatGender } from '@/utils';
 
 interface UserPageShellProps {
   user: User | null;
@@ -85,7 +85,7 @@ export function UserPageShell({
     <div className="space-y-6">
       <PageToolbar
         title={title}
-        subtitle={subtitle ?? `${user.occupation} · CCCD ${formatCitizenId(user.citizenId)}`}
+        subtitle={subtitle ?? `${formatGender(user.gender)} · CCCD ${formatCitizenId(user.citizenId)}`}
       >
         <Link to={ROUTES.HOME}>
           <Button variant="secondary" type="button">

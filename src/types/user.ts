@@ -10,9 +10,16 @@ export interface User {
   phone: string;
   email: string;
   address: string;
-  occupation: string;
   workplace: string;
   maritalStatus: string;
   education: string;
   monthlyIncomeAvg: number;
+}
+
+export interface CreateUserInput {
+  citizenId: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: Gender;
+  address: string;
 }

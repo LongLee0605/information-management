@@ -11,7 +11,7 @@ import { TransactionDetailModal } from '@/components/molecules/TransactionDetail
 import { getEffectiveAppDateRange } from '@/constants';
 import { useSelectedUserContext } from '@/context';
 import type { TransactionWithUser, User } from '@/types';
-import { formatCurrency, formatDate, getCifFromUserId, isDateInRange } from '@/utils';
+import { formatCurrency, formatDate, getAvatarUrl, getCifFromUserId, isDateInRange } from '@/utils';
 
 export interface DateRangeFilter {
   fromDate: string;
@@ -105,6 +105,8 @@ export function TransactionsPanel({
     });
   }, [transactions, search, activeUserFilter, fromDate, toDate]);
 
+  const paginationResetKey = `${search}|${activeUserFilter}|${fromDate}|${toDate}`;
+
   const selectedUser = selectedTransaction
     ? userLookup?.get(selectedTransaction.userId) ?? null
     : null;
@@ -142,7 +144,7 @@ export function TransactionsPanel({
                 <Avatar
                   src={
                     userLookup?.get(tx.userId)?.avatar
-                    ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${tx.userId}`
+                    ?? getAvatarUrl(tx.userId, 'male')
                   }
                   alt={tx.userFullName}
                   size="sm"
@@ -249,7 +251,7 @@ export function TransactionsPanel({
             />
             {activeUserFilter !== 'all' && (
               <p className="text-xs text-primary-600">
-                Đang chọn khách hàng — Tài Khoản và Báo Cáo được kích hoạt trên menu
+                Đang chọn khách hàng — Tổng Quan được kích hoạt trên menu Báo Cáo
               </p>
             )}
           </div>
@@ -274,6 +276,8 @@ export function TransactionsPanel({
           getRowKey={(tx) => tx.id}
           onRowClick={(tx) => setSelectedTransaction(tx)}
           emptyMessage="Không có giao dịch phù hợp."
+          paginationResetKey={paginationResetKey}
+          itemLabel="giao dịch"
         />
       )}
 

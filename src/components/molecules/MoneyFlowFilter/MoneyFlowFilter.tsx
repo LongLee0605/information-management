@@ -62,7 +62,7 @@ export function MoneyFlowFilter({
             type="text"
             value={values.cif}
             onChange={(event) => updateField('cif', event.target.value.toUpperCase())}
-            placeholder="CIF001"
+            placeholder="26410060"
             className="form-input uppercase"
           />
         </label>

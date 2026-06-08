@@ -1,18 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getUserById } from '@/services';
 import type { User } from '@/types';
+import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
+import { subscribeUserChange } from '@/utils/userRuntimeStore';
 
 interface UseUserResult {
   user: User | null;
+  userId: string | undefined;
   loading: boolean;
   error: string | null;
   notFound: boolean;
   refetch: () => void;
 }
 
-export function useUser(id: string | undefined): UseUserResult {
+export function useUser(routeParam: string | undefined): UseUserResult {
+  const userId = useMemo(
+    () => resolveUserIdFromRouteParam(routeParam),
+    [routeParam],
+  );
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(Boolean(id));
+  const [loading, setLoading] = useState(Boolean(userId));
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [fetchKey, setFetchKey] = useState(0);
@@ -22,11 +29,17 @@ export function useUser(id: string | undefined): UseUserResult {
   }, []);
 
   useEffect(() => {
-    if (!id) {
+    return subscribeUserChange(() => {
+      setFetchKey((key) => key + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
       return;
     }
 
-    const userId = id;
+    const activeUserId = userId;
     let cancelled = false;
 
     async function fetchUser() {
@@ -35,7 +48,7 @@ export function useUser(id: string | undefined): UseUserResult {
       setNotFound(false);
 
       try {
-        const data = await getUserById(userId);
+        const data = await getUserById(activeUserId);
         if (!cancelled) {
           if (data) {
             setUser(data);
@@ -60,16 +73,17 @@ export function useUser(id: string | undefined): UseUserResult {
     return () => {
       cancelled = true;
     };
-  }, [id, fetchKey]);
+  }, [userId, fetchKey]);
 
   return useMemo(
     () => ({
-      user: id ? user : null,
-      loading: id ? loading : false,
-      error: id ? error : null,
-      notFound: !id || notFound,
+      user: userId ? user : null,
+      userId,
+      loading: Boolean(routeParam && userId && loading),
+      error: userId ? error : null,
+      notFound: Boolean(routeParam && !userId) || Boolean(userId && notFound),
       refetch,
     }),
-    [id, user, loading, error, notFound, refetch],
+    [routeParam, userId, user, loading, error, notFound, refetch],
   );
 }

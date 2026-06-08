@@ -2,7 +2,9 @@ import edgesData from '@/data/moneyFlowEdges.json';
 import usersData from '@/data/users.json';
 import type { User } from '@/types';
 import type { MoneyFlowLevel, MoneyFlowNode, MoneyFlowTrace } from '@/types/moneyFlow';
-import { getAccountByUserId } from '@/utils/accountRegistry';
+import { getAccountByUserId, getAllBankAccounts } from '@/utils/accountRegistry';
+import { isUserDeleted } from '@/utils/deletedUsersRuntimeStore';
+import { getRuntimeUserById } from '@/utils/userRuntimeStore';
 import { clampAppDateRange, getDemoToday } from '@/utils/demoDate';
 import { notifyMoneyFlowChange } from '@/utils/moneyFlowChange';
 import {
@@ -50,20 +52,35 @@ function rebuildEdgeIndexes(): void {
 
 rebuildEdgeIndexes();
 
-const ALL_USER_IDS = [
-  'u001',
-  'u002',
-  'u003',
-  'u004',
-  'u005',
-  'u006',
-  'u007',
-  'u008',
-  'u009',
-  'u010',
-] as const;
-
 let tracesCache: Record<string, MoneyFlowTrace> | null = null;
+
+function resolveTraceUser(userId: string): User | null {
+  if (isUserDeleted(userId)) {
+    return null;
+  }
+
+  return users.get(userId) ?? getRuntimeUserById(userId) ?? null;
+}
+
+function collectTraceUserIds(): string[] {
+  const ids = new Set<string>();
+
+  for (const account of getAllBankAccounts()) {
+    ids.add(account.userId);
+  }
+
+  for (const edge of activeEdges) {
+    if (!isUserDeleted(edge.fromUserId)) {
+      ids.add(edge.fromUserId);
+    }
+
+    if (!isUserDeleted(edge.toUserId)) {
+      ids.add(edge.toUserId);
+    }
+  }
+
+  return [...ids];
+}
 
 function normalizeEdge(edge: StoredMoneyFlowEdge): MoneyFlowEdge {
   return {
@@ -177,7 +194,7 @@ function buildFlowNode(
   }
 
   const account = getAccountByUserId(edge.toUserId);
-  const user = users.get(edge.toUserId);
+  const user = resolveTraceUser(edge.toUserId);
 
   if (!account || !user) {
     return null;
@@ -274,7 +291,7 @@ export function recordTransferEdge(
 
 export function buildMoneyFlowTrace(rootUserId: string): MoneyFlowTrace | null {
   const account = getAccountByUserId(rootUserId);
-  const user = users.get(rootUserId);
+  const user = resolveTraceUser(rootUserId);
 
   if (!account || !user) {
     return null;
@@ -311,7 +328,7 @@ export function getAllMoneyFlowTraces(): Record<string, MoneyFlowTrace> {
 
   tracesCache = {};
 
-  for (const userId of ALL_USER_IDS) {
+  for (const userId of collectTraceUserIds()) {
     const trace = buildMoneyFlowTrace(userId);
     if (trace) {
       tracesCache[userId] = trace;
@@ -322,7 +339,7 @@ export function getAllMoneyFlowTraces(): Record<string, MoneyFlowTrace> {
 }
 
 export function getTraceUserIds(): string[] {
-  return [...ALL_USER_IDS];
+  return collectTraceUserIds();
 }
 
 export function reloadMoneyFlowEdgesFromBase(): void {

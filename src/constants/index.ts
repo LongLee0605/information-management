@@ -1,8 +1,12 @@
+import { getUserRouteSegment } from '@/utils/userRoute';
+
 export const ROUTES = {
   HOME: '/',
+  ACCOUNTS: '/accounts',
   TRANSACTIONS: '/transactions',
   TRANSFER: '/transactions/transfer',
   USER_ACCOUNT: '/users/:id',
+  USER_PROFILE: '/users/:id/profile',
   USER_TRANSACTIONS: '/users/:id/transactions',
   USER_TRANSFER: '/users/:id/transactions/transfer',
   USER_REPORTS: '/users/:id/reports',
@@ -10,28 +14,32 @@ export const ROUTES = {
   MONEY_TRACE: '/money-trace',
 } as const;
 
-export function userAccountPath(id: string): string {
-  return `/users/${id}`;
+export function userAccountPath(userId: string): string {
+  return `/users/${getUserRouteSegment(userId)}`;
 }
 
-export function userTransactionsPath(id: string): string {
-  return `/users/${id}/transactions`;
+export function userProfilePath(userId: string): string {
+  return `/users/${getUserRouteSegment(userId)}/profile`;
 }
 
-export function userTransferPath(id: string): string {
-  return `/users/${id}/transactions/transfer`;
+export function userTransactionsPath(userId: string): string {
+  return `/users/${getUserRouteSegment(userId)}/transactions`;
 }
 
-export function userReportsPath(id: string): string {
-  return `/users/${id}/reports`;
+export function userTransferPath(userId: string): string {
+  return `/users/${getUserRouteSegment(userId)}/transactions/transfer`;
 }
 
-export function userMoneyTracePath(id: string): string {
-  return `/users/${id}/money-trace`;
+export function userReportsPath(userId: string): string {
+  return `/users/${getUserRouteSegment(userId)}/reports`;
+}
+
+export function userMoneyTracePath(userId: string): string {
+  return `/users/${getUserRouteSegment(userId)}/money-trace`;
 }
 
 export function userDetailPath(id: string): string {
-  return userAccountPath(id);
+  return userProfilePath(id);
 }
 
 export type ReportTab = 'charts' | 'sources';
@@ -58,6 +66,8 @@ export const PIE_COLORS = [
 ] as const;
 
 export const MOCK_DELAY_MS = 200;
+
+export { DEFAULT_PAGE_SIZE } from './pagination';
 
 export {
   APP_DATE_RANGE,

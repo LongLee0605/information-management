@@ -5,8 +5,10 @@ import type { TransferDraft } from '@/utils/transferAccounts';
 import { MOCK_DELAY_MS } from '@/constants';
 import { getDemoToday } from '@/utils/demoDate';
 import { applyTransferBalance } from '@/utils/accountRuntimeStore';
-import { getCifFromUserId } from '@/utils/accountRegistry';
+import { getCifFromUserId, invalidateAccountRegistryCache } from '@/utils/accountRegistry';
+import { isUserDeleted } from '@/utils/deletedUsersRuntimeStore';
 import { delay } from '@/utils';
+import { loadRuntimeUsers, subscribeUserChange } from '@/utils/userRuntimeStore';
 import { subscribeMoneyFlowChange } from '@/utils/moneyFlowChange';
 import { recordTransferEdge } from '@/utils/moneyFlowTraceBuilder';
 import {
@@ -17,20 +19,42 @@ import {
 import { generateTransactionsFromFinance } from '@/utils/transactionGenerator';
 
 const finances = financeData as UserFinance[];
-const users = usersData as User[];
 const financeByUserId = new Map(finances.map((item) => [item.userId, item]));
-const userNames = new Map(users.map((user) => [user.id, user.fullName]));
+
+const baseUserNames = new Map((usersData as User[]).map((user) => [user.id, user.fullName]));
+
+function resolveUserFullName(userId: string): string {
+  if (isUserDeleted(userId)) {
+    return userId;
+  }
+
+  const runtimeUser = loadRuntimeUsers().find((user) => user.id === userId);
+  if (runtimeUser) {
+    return runtimeUser.fullName;
+  }
+
+  return baseUserNames.get(userId) ?? userId;
+}
+
+function cacheAllTransactions(transactions: TransactionWithUser[]): TransactionWithUser[] {
+  allTransactionsCache = transactions;
+  transactionByIdCache = new Map(transactions.map((transaction) => [transaction.id, transaction]));
+  return transactions;
+}
 
 let allTransactionsCache: TransactionWithUser[] | null = null;
+let transactionByIdCache = new Map<string, TransactionWithUser>();
 let generatedTransactionsCache: Map<string, Transaction[]> | null = null;
 
 function invalidateTransactionCaches(): void {
   allTransactionsCache = null;
+  transactionByIdCache = new Map();
   generatedTransactionsCache = null;
 }
 
 subscribeTransactionChange(invalidateTransactionCaches);
 subscribeMoneyFlowChange(invalidateTransactionCaches);
+subscribeUserChange(invalidateTransactionCaches);
 
 function getGeneratedTransactions(userId: string): Transaction[] {
   if (!generatedTransactionsCache) {
@@ -77,10 +101,11 @@ function buildAllTransactions(): TransactionWithUser[] {
   ]);
 
   return [...userIds]
+    .filter((userId) => !isUserDeleted(userId))
     .flatMap((userId) =>
       mergeUserTransactions(userId, runtimeByUserId).map((transaction) => ({
         ...transaction,
-        userFullName: userNames.get(transaction.userId) ?? transaction.userId,
+        userFullName: resolveUserFullName(transaction.userId),
       })),
     )
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
@@ -105,7 +130,15 @@ function nextTransferId(userId: string, runtimeByUserId: Map<string, Transaction
     }
   }
 
-  return `${prefix}${String(existingIds.size + 1).padStart(4, '0')}`;
+  let maxSuffix = 0;
+  for (const id of existingIds) {
+    const suffix = Number.parseInt(id.slice(prefix.length), 10);
+    if (!Number.isNaN(suffix) && suffix > maxSuffix) {
+      maxSuffix = suffix;
+    }
+  }
+
+  return `${prefix}${String(maxSuffix + 1).padStart(4, '0')}`;
 }
 
 export async function getTransactionsByUserId(userId: string): Promise<Transaction[]> {
@@ -117,7 +150,7 @@ export async function getAllTransactions(): Promise<TransactionWithUser[]> {
   await delay(MOCK_DELAY_MS);
 
   if (!allTransactionsCache) {
-    allTransactionsCache = buildAllTransactions();
+    return cacheAllTransactions(buildAllTransactions());
   }
 
   return allTransactionsCache;
@@ -129,16 +162,20 @@ export async function getTransactionById(
   await delay(MOCK_DELAY_MS);
 
   if (!allTransactionsCache) {
-    allTransactionsCache = buildAllTransactions();
+    cacheAllTransactions(buildAllTransactions());
   }
 
-  return allTransactionsCache.find((transaction) => transaction.id === transactionId) ?? null;
+  return transactionByIdCache.get(transactionId) ?? null;
 }
 
 export async function createTransferTransaction(
   draft: TransferDraft,
 ): Promise<TransactionWithUser> {
   await delay(MOCK_DELAY_MS);
+
+  if (draft.sourceUserId === draft.recipientUserId) {
+    throw new Error('Không thể chuyển khoản giữa các tài khoản của cùng khách hàng.');
+  }
 
   const transferDate = getDemoToday();
   const runtimeByUserId = groupRuntimeTransactionsByUserId();
@@ -168,10 +205,11 @@ export async function createTransferTransaction(
   appendRuntimeTransactions([debitTransaction, creditTransaction]);
   applyTransferBalance(draft.sourceUserId, draft.recipientUserId, draft.amount);
   recordTransferEdge(draft.sourceUserId, draft.recipientUserId, draft.amount, transferDate);
+  invalidateAccountRegistryCache();
   invalidateTransactionCaches();
 
   return {
     ...debitTransaction,
-    userFullName: userNames.get(draft.sourceUserId) ?? draft.sourceUserName,
+    userFullName: resolveUserFullName(draft.sourceUserId) || draft.sourceUserName,
   };
 }

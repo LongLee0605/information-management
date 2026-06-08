@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Avatar } from '@/components/atoms/Avatar';
 import { Text } from '@/components/atoms/Text';
 import { userAccountPath } from '@/constants';
-import { formatCitizenId, formatCurrency } from '@/utils';
+import { formatCitizenId, formatCurrency, formatGender } from '@/utils';
 import type { User } from '@/types';
 import { cn } from '@/utils';
 
@@ -25,7 +25,7 @@ export const UserCard = memo(function UserCard({ user, className }: UserCardProp
     >
       <div className="flex flex-col items-center text-center">
         <div className="transition-transform duration-300 group-hover:scale-105">
-          <Avatar src={user.avatar} alt={user.fullName} size="lg" />
+          <Avatar src={user.avatar} alt={user.fullName} size="lg" gender={user.gender} />
         </div>
 
         <Text as="h3" variant="h3" className="mt-5 group-hover:text-accent-light transition-colors">
@@ -37,7 +37,7 @@ export const UserCard = memo(function UserCard({ user, className }: UserCardProp
         </Text>
 
         <span className="mt-4 inline-flex rounded-full border border-accent/20 bg-accent-muted px-3 py-1 text-xs font-medium text-accent-light">
-          {user.occupation}
+          {formatGender(user.gender)}
         </span>
 
         <Text variant="caption" className="mt-4 text-muted">

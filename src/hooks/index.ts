@@ -5,3 +5,6 @@ export { useMediaQuery, useIsMobile } from './useMediaQuery';
 export { useTransactions } from './useTransactions';
 export { useAllTransactions } from './useAllTransactions';
 export { useActiveUserId } from './useActiveUserId';
+export { useCanonicalUserRoute } from './useCanonicalUserRoute';
+export { useCustomerAccounts } from './useCustomerAccounts';
+export { useAllCustomerAccounts } from './useAllCustomerAccounts';

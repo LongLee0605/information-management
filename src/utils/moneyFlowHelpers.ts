@@ -9,6 +9,7 @@ import {
   getAccountByCif,
   getAccountByNumber,
 } from '@/utils/accountRegistry';
+import { buildMoneyFlowTrace } from '@/utils/moneyFlowTraceBuilder';
 import { formatDemoDateLabel } from '@/utils/demoDate';
 
 export { getCifFromUserId, getUserIdFromCif } from '@/utils/accountRegistry';
@@ -174,14 +175,14 @@ export function resolveTraceUserId(
 
   if (normalizedCif) {
     const account = getAccountByCif(normalizedCif);
-    if (account && traces[account.userId]) {
+    if (account && (traces[account.userId] || buildMoneyFlowTrace(account.userId))) {
       return account.userId;
     }
   }
 
   if (normalizedAccount) {
     const account = getAccountByNumber(normalizedAccount);
-    if (account && traces[account.userId]) {
+    if (account && (traces[account.userId] || buildMoneyFlowTrace(account.userId))) {
       return account.userId;
     }
   }

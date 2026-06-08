@@ -1,5 +1,9 @@
 import type { Transaction } from '@/types/transaction';
 import { clearRuntimeBalances } from '@/utils/accountRuntimeStore';
+import { clearRuntimeCustomerAccounts } from '@/utils/customerAccountRuntimeStore';
+import { clearDeletedAccounts } from '@/utils/deletedAccountsRuntimeStore';
+import { clearDeletedUsers } from '@/utils/deletedUsersRuntimeStore';
+import { clearRuntimeUsers } from '@/utils/userRuntimeStore';
 import { clampAppDate, clampAppDateRange, getDemoToday, isAppYearDate } from '@/utils/demoDate';
 
 export interface StoredMoneyFlowEdge {
@@ -179,6 +183,10 @@ export function clearRuntimeStore(): void {
   sessionStorage.removeItem(RUNTIME_EDGES_KEY);
   invalidateRuntimeTransactionsCache();
   clearRuntimeBalances();
+  clearRuntimeUsers();
+  clearRuntimeCustomerAccounts();
+  clearDeletedUsers();
+  clearDeletedAccounts();
   clearLegacyRuntimeStorage();
   legacyStorageCleared = true;
   notifyTransactionChange();

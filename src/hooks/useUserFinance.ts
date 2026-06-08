@@ -9,6 +9,7 @@ import {
 } from '@/utils/chartTransformers';
 import { subscribeTransactionChange } from '@/utils/transferRuntimeStore';
 import { PIE_COLORS } from '@/constants';
+import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
 
 interface UseUserFinanceResult {
   monthly: MonthlyFinance[];
@@ -24,7 +25,11 @@ interface UseUserFinanceResult {
 
 const EMPTY_SUMMARY = calculateFinanceSummary([]);
 
-export function useUserFinance(userId: string | undefined): UseUserFinanceResult {
+export function useUserFinance(routeParam: string | undefined): UseUserFinanceResult {
+  const userId = useMemo(
+    () => resolveUserIdFromRouteParam(routeParam),
+    [routeParam],
+  );
   const [monthly, setMonthly] = useState<MonthlyFinance[]>([]);
   const [breakdown, setBreakdown] = useState<SourceBreakdown[]>([]);
   const [loading, setLoading] = useState(Boolean(userId));

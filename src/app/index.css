@@ -149,4 +149,48 @@
       background-position: -200% 0;
     }
   }
+
+  .gender-badge {
+    display: inline-flex;
+    min-width: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+
+  .gender-badge--male {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+
+  .gender-badge--female {
+    background: #fce7f3;
+    color: #be185d;
+  }
+
+  .avatar-image {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+  }
+
+  .avatar-ring--male {
+    border: 2px solid #93c5fd;
+    box-shadow: 0 0 0 2px #fff;
+  }
+
+  .avatar-ring--female {
+    border: 2px solid #f9a8d4;
+    box-shadow: 0 0 0 2px #fff;
+  }
+
+  .customer-table-row {
+    transition: background-color 0.15s ease;
+  }
+
+  .customer-table-row:hover {
+    background: #eff6ff !important;
+  }
 }

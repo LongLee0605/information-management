@@ -8,7 +8,7 @@ import {
 } from '@/components/molecules/TransactionBadge';
 import { userAccountPath, userTransactionsPath } from '@/constants';
 import type { TransactionWithUser, User } from '@/types';
-import { formatCurrency, formatDate } from '@/utils';
+import { formatCurrency, formatDate, getAvatarUrl } from '@/utils';
 
 interface TransactionDetailModalProps {
   transaction: TransactionWithUser | null;
@@ -50,7 +50,7 @@ export function TransactionDetailModal({
   const displayUser = user ?? {
     id: transaction.userId,
     fullName: transaction.userFullName,
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${transaction.userId}`,
+    avatar: getAvatarUrl(transaction.userId, 'male'),
   };
 
   return (

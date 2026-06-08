@@ -1,72 +1,65 @@
 [
   {
     "userId": "u001",
-    "cif": "CIF001",
+    "cif": "26410060",
     "accountNumber": "01234567890",
     "bank": "OCB",
     "bankBadgeClass": "bg-orange-500 text-white"
   },
   {
     "userId": "u002",
-    "cif": "CIF002",
+    "cif": "26410064",
     "accountNumber": "09876543210",
     "bank": "TPBank",
     "bankBadgeClass": "bg-red-600 text-white"
   },
   {
     "userId": "u003",
-    "cif": "CIF003",
+    "cif": "26410082",
     "accountNumber": "01112223334",
     "bank": "Vietcombank",
     "bankBadgeClass": "bg-green-700 text-white"
   },
   {
     "userId": "u004",
-    "cif": "CIF004",
+    "cif": "26410138",
     "accountNumber": "05556667778",
     "bank": "BIDV",
     "bankBadgeClass": "bg-teal-700 text-white"
   },
   {
     "userId": "u005",
-    "cif": "CIF005",
+    "cif": "26410089",
     "accountNumber": "06543210987",
     "bank": "MSB",
     "bankBadgeClass": "bg-blue-800 text-white"
   },
   {
     "userId": "u006",
-    "cif": "CIF006",
+    "cif": "26410051",
     "accountNumber": "03334445556",
     "bank": "VPBank",
     "bankBadgeClass": "bg-green-600 text-white"
   },
   {
     "userId": "u007",
-    "cif": "CIF007",
+    "cif": "26410156",
     "accountNumber": "04445556667",
     "bank": "ACB",
     "bankBadgeClass": "bg-blue-600 text-white"
   },
   {
     "userId": "u008",
-    "cif": "CIF008",
+    "cif": "26410005",
     "accountNumber": "02345678901",
     "bank": "SHB",
     "bankBadgeClass": "bg-orange-600 text-white"
   },
   {
     "userId": "u009",
-    "cif": "CIF009",
+    "cif": "26410067",
     "accountNumber": "07778889990",
     "bank": "ACB",
     "bankBadgeClass": "bg-blue-600 text-white"
-  },
-  {
-    "userId": "u010",
-    "cif": "CIF010",
-    "accountNumber": "09990001112",
-    "bank": "Techcombank",
-    "bankBadgeClass": "bg-red-700 text-white"
   }
 ]

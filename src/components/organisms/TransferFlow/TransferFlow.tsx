@@ -145,6 +145,11 @@ export function TransferFlow({ defaultUserId, returnPath }: TransferFlowProps) {
       return;
     }
 
+    if (recipient.userId === selectedAccount.userId) {
+      setFormError('Không thể chuyển đến tài khoản của cùng khách hàng.');
+      return;
+    }
+
     const transferDraft: TransferDraft = {
       sourceUserId: selectedAccount.userId,
       sourceAccountNumber: selectedAccount.accountNumber,
@@ -169,8 +174,12 @@ export function TransferFlow({ defaultUserId, returnPath }: TransferFlowProps) {
       setDraft(transferDraft);
       setCreatedTransaction(transaction);
       setStep(TRANSFER_STEPS.SUCCESS);
-    } catch {
-      setFormError('Không thể tạo giao dịch. Vui lòng thử lại.');
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : 'Không thể tạo giao dịch. Vui lòng thử lại.',
+      );
     } finally {
       setSubmitting(false);
     }

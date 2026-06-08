@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getTransactionsByUserId } from '@/services';
 import type { Transaction } from '@/types';
 import { subscribeTransactionChange } from '@/utils/transferRuntimeStore';
+import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
 interface UseTransactionsResult {
   transactions: Transaction[];
   loading: boolean;
@@ -9,7 +10,11 @@ interface UseTransactionsResult {
   refetch: () => void;
 }
 
-export function useTransactions(userId: string | undefined): UseTransactionsResult {
+export function useTransactions(routeParam: string | undefined): UseTransactionsResult {
+  const userId = useMemo(
+    () => resolveUserIdFromRouteParam(routeParam),
+    [routeParam],
+  );
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(Boolean(userId));
   const [error, setError] = useState<string | null>(null);

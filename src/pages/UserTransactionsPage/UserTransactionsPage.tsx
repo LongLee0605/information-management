@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useUser, useTransactions, useUsers } from '@/hooks';
+import { useCanonicalUserRoute, useUser, useTransactions, useUsers } from '@/hooks';
 import { useSelectedUserContext } from '@/context';
 import { ErrorState } from '@/components/molecules/ErrorState';
 import {
@@ -20,7 +20,8 @@ import { isDateInRange } from '@/utils';
 export default function UserTransactionsPage() {
   const { id } = useParams<{ id: string }>();
   const { setContextUserId } = useSelectedUserContext();
-  const { user, loading: userLoading, error: userError, notFound, refetch: refetchUser } = useUser(id);
+  useCanonicalUserRoute();
+  const { user, userId, loading: userLoading, error: userError, notFound, refetch: refetchUser } = useUser(id);
   const { users } = useUsers();
   const {
     transactions,
@@ -31,10 +32,10 @@ export default function UserTransactionsPage() {
   const [dateRange, setDateRange] = useState<DateRangeFilter>(() => getEffectiveAppDateRange());
 
   useEffect(() => {
-    if (id) {
-      setContextUserId(id);
+    if (userId) {
+      setContextUserId(userId);
     }
-  }, [id, setContextUserId]);
+  }, [userId, setContextUserId]);
 
   const transactionsWithUser = useMemo<TransactionWithUser[]>(
     () =>
@@ -79,8 +80,8 @@ export default function UserTransactionsPage() {
       summary={summary}
       summaryPeriodLabel={summaryPeriodLabel}
       toolbarActions={
-        id ? (
-          <Link to={userTransferPath(id)}>
+        userId ? (
+          <Link to={userTransferPath(userId)}>
             <Button variant="primary" type="button">
               + Thêm Giao Dịch
             </Button>
@@ -98,7 +99,7 @@ export default function UserTransactionsPage() {
           transactions={transactionsWithUser}
           loading={txLoading}
           users={users}
-          lockedUserId={id}
+          lockedUserId={userId}
           showUserColumn={false}
           userLookup={userLookup}
           dateRange={dateRange}

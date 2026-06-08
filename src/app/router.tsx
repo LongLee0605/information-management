@@ -4,11 +4,13 @@ import { SelectedUserProvider } from '@/context';
 import { LazyPage } from '@/app/LazyPage';
 import {
   AccountPage,
+  AllAccountsPage,
   AllTransactionsPage,
   HomePage,
   MoneyFlowTracePage,
   ReportsPage,
   TransferPage,
+  UserProfilePage,
   UserTransactionsPage,
 } from '@/app/lazyPages';
 import { ROUTES } from '@/constants';
@@ -30,6 +32,14 @@ export const router = createBrowserRouter([
             element: (
               <LazyPage>
                 <HomePage />
+              </LazyPage>
+            ),
+          },
+          {
+            path: 'accounts',
+            element: (
+              <LazyPage>
+                <AllAccountsPage />
               </LazyPage>
             ),
           },
@@ -62,6 +72,14 @@ export const router = createBrowserRouter([
             element: (
               <LazyPage>
                 <AccountPage />
+              </LazyPage>
+            ),
+          },
+          {
+            path: 'users/:id/profile',
+            element: (
+              <LazyPage>
+                <UserProfilePage />
               </LazyPage>
             ),
           },

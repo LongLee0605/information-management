@@ -67,9 +67,12 @@ export function delay(ms: number): Promise<void> {
   });
 }
 
-export function getAvatarUrl(seed: string): string {
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
-}
+export {
+  buildAvatarSeed,
+  createUniqueAvatarUrl,
+  getAvatarUrl,
+  parseBirthDateFromCitizenId,
+} from './avatar';
 
 export {
   getAccountByCif,
@@ -85,6 +88,31 @@ export {
   APP_DATE_RANGE,
 } from './demoDate';
 export { syncBreakdownWithMonthly, calculateMonthlyIncomeAverage } from './financeSync';
+export {
+  EMPTY_CUSTOMER_FILTER,
+  filterCustomers,
+  parseVnDateInput,
+} from './customerFilter';
+export type { CustomerFilterValues } from './customerFilter';
+export {
+  EMPTY_ACCOUNT_FILTER,
+  ACCOUNT_TYPE_FILTER_OPTIONS,
+  ACCOUNT_STATUS_FILTER_OPTIONS,
+  buildAccountFilterResetKey,
+  filterBankAccounts,
+} from './accountFilter';
+export type { AccountFilterValues } from './accountFilter';
+export {
+  formatBirthDate,
+  syncBirthDateFromCitizenId,
+  syncUsersBirthDates,
+} from './userBirthDate';
+export { DEFAULT_PAGE_SIZE } from '@/constants/pagination';
+export {
+  canonicalizeUserPathname,
+  getUserRouteSegment,
+  resolveUserIdFromRouteParam,
+} from './userRoute';
 
 export function enrichColor(hex: string, intensity = 1.25): string {
   const normalized = hex.replace('#', '');

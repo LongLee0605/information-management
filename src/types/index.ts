@@ -1,4 +1,12 @@
-export type { User, Gender } from './user';
+export type { User, Gender, CreateUserInput } from './user';
+export type {
+  BankAccountType,
+  BankAccountStatus,
+  CustomerBankAccount,
+  EnrichedBankAccount,
+  CreateBankAccountInput,
+  CifVerificationResult,
+} from './bankAccount';
 export type {
   MonthlyFinance,
   SourceBreakdown,

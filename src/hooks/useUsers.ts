@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getUsers } from '@/services';
 import type { User } from '@/types';
+import { subscribeUserChange } from '@/utils/userRuntimeStore';
 
 interface UseUsersResult {
   users: User[];
@@ -17,6 +18,12 @@ export function useUsers(): UseUsersResult {
 
   const refetch = useCallback(() => {
     setFetchKey((key) => key + 1);
+  }, []);
+
+  useEffect(() => {
+    return subscribeUserChange(() => {
+      setFetchKey((key) => key + 1);
+    });
   }, []);
 
   useEffect(() => {
