@@ -22,17 +22,14 @@ import {
 import { isAccountDeleted, markAccountDeleted } from '@/utils/deletedAccountsRuntimeStore';
 import { isUserDeleted } from '@/utils/deletedUsersRuntimeStore';
 import { getUserById } from '@/services/userService';
+import {
+  collectExistingAccountNumbers,
+  generateUniqueAccountNumber,
+} from '@/utils/accountNumber';
 import { delay } from '@/utils';
 
 const baseAccounts = customerBankAccountsData as CustomerBankAccount[];
-
-function generateAccountNumber(existingNumbers: Set<string>): string {
-  let candidate = String(Math.floor(10_000_000_000 + Math.random() * 90_000_000_000));
-  while (existingNumbers.has(candidate)) {
-    candidate = String(Math.floor(10_000_000_000 + Math.random() * 90_000_000_000));
-  }
-  return candidate;
-}
+const DEFAULT_BANK_ID = 'ocb';
 
 export async function getCustomerBankAccountsByUserId(
   userId: string,
@@ -68,6 +65,7 @@ export async function verifyCif(cif: string): Promise<CifVerificationResult> {
     userId,
     cif: canonicalCif,
     fullName: user.fullName,
+    phone: user.phone,
   };
 }
 
@@ -75,7 +73,7 @@ export async function createBankAccount(input: CreateBankAccountInput): Promise<
   await delay(MOCK_DELAY_MS);
 
   const verification = await verifyCif(input.cif);
-  const bank = getCustomerBankOption(input.bankId);
+  const bank = getCustomerBankOption(input.bankId ?? DEFAULT_BANK_ID);
 
   if (!bank) {
     throw new Error('Ngân hàng không hợp lệ.');
@@ -94,12 +92,8 @@ export async function createBankAccount(input: CreateBankAccountInput): Promise<
     ...loadRuntimeCustomerBankAccounts(),
   ].filter((account) => account.userId === verification.userId);
 
-  const existingNumbers = new Set([
-    ...baseAccounts.map((account) => account.accountNumber),
-    ...loadRuntimeCustomerBankAccounts().map((account) => account.accountNumber),
-  ]);
-
-  const accountNumber = generateAccountNumber(existingNumbers);
+  const existingNumbers = collectExistingAccountNumbers(baseAccounts);
+  const accountNumber = generateUniqueAccountNumber(existingNumbers, verification.phone);
   const hasPrimaryPayment = existingAccounts.some(
     (account) => account.accountType === 'payment' && account.isPrimary,
   );

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useActiveUserId } from '@/hooks';
-import { MoneyFlowDiagram } from '@/components/organisms/MoneyFlowDiagram';
+import { MoneyFlowExplorer } from '@/components/organisms/MoneyFlowExplorer';
 import {
   MoneyFlowFilter,
   type MoneyFlowFilterValues,
@@ -56,6 +56,19 @@ export default function MoneyFlowTracePage() {
   const [initializing, setInitializing] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
   const [flowRevision, setFlowRevision] = useState(0);
+
+  const filtersDirty = useMemo(() => {
+    if (!draftFilters || !appliedFilters) {
+      return false;
+    }
+
+    return (
+      draftFilters.cif !== appliedFilters.cif
+      || draftFilters.accountNumber !== appliedFilters.accountNumber
+      || draftFilters.fromDate !== appliedFilters.fromDate
+      || draftFilters.toDate !== appliedFilters.toDate
+    );
+  }, [draftFilters, appliedFilters]);
 
   useEffect(() => {
     return subscribeMoneyFlowChange(() => {
@@ -170,7 +183,7 @@ export default function MoneyFlowTracePage() {
 
   if (initializing || !draftFilters) {
     return (
-      <div className="space-y-6">
+      <div className="page-stack">
         <Skeleton className="h-24 w-full rounded-lg" />
         <Skeleton className="h-32 w-full rounded-lg" />
         <Skeleton className="h-96 w-full rounded-lg" />
@@ -179,13 +192,13 @@ export default function MoneyFlowTracePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageToolbar
         title="Truy Vết Dòng Tiền"
         subtitle={
           selectedUserId
-            ? `Đang gợi ý tài khoản ${getCifFromUserId(selectedUserId)} · có thể đổi CIF hoặc số tài khoản bất cứ lúc nào`
-            : 'Nhập CIF hoặc số tài khoản F0 để truy vết — không cần chọn khách hàng trước'
+            ? `Gợi ý CIF ${getCifFromUserId(selectedUserId)} · chuyển Sơ đồ / Bảng chi tiết để xem toàn bộ luồng`
+            : 'Nhập CIF hoặc số tài khoản F0 · dùng Bảng chi tiết để xem nhanh toàn bộ tài khoản'
         }
       />
 
@@ -197,6 +210,7 @@ export default function MoneyFlowTracePage() {
         onSearch={handleSearch}
         onReset={handleReset}
         error={result?.error}
+        dirty={filtersDirty}
       />
 
       {searching ? (
@@ -209,15 +223,24 @@ export default function MoneyFlowTracePage() {
       )}
 
       {searching ? (
-        <Skeleton className="h-[520px] w-full rounded-lg" />
+        <Skeleton className="h-[620px] w-full rounded-lg" />
       ) : result?.trace ? (
-        <MoneyFlowDiagram root={result.trace.root} />
+        <MoneyFlowExplorer key={result.trace.root.id} root={result.trace.root} />
       ) : (
         hasSearched && !result?.error && (
-          <div className="dashboard-card p-8 text-center text-muted">
-            Nhập bộ lọc và bấm Tìm Kiếm để xem sơ đồ dòng tiền.
+          <div className="dashboard-card p-6 text-center">
+            <p className="text-base font-semibold text-foreground">Chưa có dữ liệu truy vết</p>
+            <p className="mt-2 text-sm text-muted">
+              Nhập CIF hoặc số tài khoản F0, chọn khoảng thời gian và bấm Tìm Kiếm.
+            </p>
           </div>
         )
+      )}
+
+      {result?.error && !result.trace && hasSearched && !searching && (
+        <div className="dashboard-card border border-red-100 bg-red-50/60 p-6 text-center">
+          <p className="text-sm font-medium text-red-700">{result.error}</p>
+        </div>
       )}
     </div>
   );

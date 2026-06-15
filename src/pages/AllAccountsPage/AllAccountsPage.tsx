@@ -13,7 +13,7 @@ export default function AllAccountsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
-    <>
+    <div className="page-stack">
       <PageToolbar
         title="Quản Lý Tài Khoản"
         subtitle="Tất cả tài khoản khách hàng · chọn khách hàng để xem hồ sơ và báo cáo"
@@ -44,11 +44,8 @@ export default function AllAccountsPage() {
       <AddAccountModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSuccess={() => {
-          setShowAddModal(false);
-          refetch();
-        }}
+        onSuccess={refetch}
       />
-    </>
+    </div>
   );
 }

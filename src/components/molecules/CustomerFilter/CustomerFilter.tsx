@@ -38,7 +38,7 @@ export function CustomerFilter({
   }
 
   return (
-    <div className={cn('dashboard-card mb-6 p-4', className)}>
+    <div className={cn('dashboard-card p-4', className)}>
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="text"

@@ -146,7 +146,7 @@ export default function HomePage() {
   }
 
   return (
-    <>
+    <div className="page-stack">
       <PageToolbar
         title="Quản Lý Khách Hàng"
         subtitle="Danh sách thông tin khách hàng"
@@ -186,10 +186,7 @@ export default function HomePage() {
       <AddCustomerModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSuccess={() => {
-          setShowAddModal(false);
-          refetch();
-        }}
+        onSuccess={refetch}
       />
 
       <ConfirmDialog
@@ -216,6 +213,6 @@ export default function HomePage() {
           {deleteError}
         </p>
       )}
-    </>
+    </div>
   );
 }

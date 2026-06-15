@@ -17,7 +17,7 @@ export default function AllTransactionsPage() {
   );
 
   return (
-    <>
+    <div className="page-stack">
       <PageToolbar
         title="Quản Lý Giao Dịch"
         subtitle="Tất cả giao dịch thu chi · chọn khách hàng để xem chi tiết tài khoản và báo cáo"
@@ -42,6 +42,6 @@ export default function AllTransactionsPage() {
           userLookup={userLookup}
         />
       )}
-    </>
+    </div>
   );
 }

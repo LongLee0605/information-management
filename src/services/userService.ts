@@ -21,7 +21,13 @@ import {
   subscribeUserChange,
 } from '@/utils/userRuntimeStore';
 import { syncBirthDateFromCitizenId } from '@/utils/userBirthDate';
+import {
+  collectExistingAccountNumbers,
+  generateUniqueAccountNumber,
+  nextUniqueCif,
+} from '@/utils/accountNumber';
 import { createUniqueAvatarUrl, delay, getAvatarUrl } from '@/utils';
+import type { CreateUserResult } from '@/types';
 
 const baseUsers = syncUsersBirthDatesFromJson(usersData as User[]);
 const finances = financeData as UserFinance[];
@@ -80,23 +86,6 @@ function nextUserId(existingUsers: User[]): string {
   return `u${String(max + 1).padStart(3, '0')}`;
 }
 
-function nextCif(existingAccounts: CustomerBankAccount[]): string {
-  const values = existingAccounts
-    .map((account) => Number.parseInt(account.cif.replace(/\D/g, ''), 10))
-    .filter((value) => !Number.isNaN(value));
-
-  const max = values.length > 0 ? Math.max(...values) : 26_410_000;
-  return String(max + 1);
-}
-
-function generateAccountNumber(existingNumbers: Set<string>): string {
-  let candidate = String(Math.floor(10_000_000_000 + Math.random() * 90_000_000_000));
-  while (existingNumbers.has(candidate)) {
-    candidate = String(Math.floor(10_000_000_000 + Math.random() * 90_000_000_000));
-  }
-  return candidate;
-}
-
 export async function getUsers(): Promise<User[]> {
   await delay(MOCK_DELAY_MS);
   return getAllUsersRaw().map(enrichUser);
@@ -108,7 +97,7 @@ export async function getUserById(id: string): Promise<User | null> {
   return user ? enrichUser(user) : null;
 }
 
-export async function createUser(input: CreateUserInput): Promise<User> {
+export async function createUser(input: CreateUserInput): Promise<CreateUserResult> {
   await delay(MOCK_DELAY_MS);
 
   const allUsers = getAllUsersRaw();
@@ -121,7 +110,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
     ...baseAccounts,
     ...loadRuntimeCustomerBankAccounts(),
   ];
-  const cif = nextCif(existingAccounts);
+  const cif = nextUniqueCif(existingAccounts);
   const avatar = createUniqueAvatarUrl({
     fullName: input.fullName,
     gender: input.gender,
@@ -149,16 +138,13 @@ export async function createUser(input: CreateUserInput): Promise<User> {
   appendRuntimeUser(user);
   invalidateUsersCache();
 
-  const existingNumbers = new Set([
-    ...baseAccounts.map((account) => account.accountNumber),
-    ...loadRuntimeCustomerBankAccounts().map((account) => account.accountNumber),
-  ]);
+  const existingNumbers = collectExistingAccountNumbers(baseAccounts);
 
-  const paymentNumber = generateAccountNumber(existingNumbers);
+  const paymentNumber = generateUniqueAccountNumber(existingNumbers);
   existingNumbers.add(paymentNumber);
-  const savingsNumber = generateAccountNumber(existingNumbers);
+  const savingsNumber = generateUniqueAccountNumber(existingNumbers);
   existingNumbers.add(savingsNumber);
-  const debitNumber = generateAccountNumber(existingNumbers);
+  const debitNumber = generateUniqueAccountNumber(existingNumbers);
 
   appendRuntimeCustomerBankAccounts([
     {
@@ -206,7 +192,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
   invalidateAccountRegistryCache();
   notifyUserChange();
 
-  return enrichUser(user);
+  return { user: enrichUser(user), cif };
 }
 
 export async function deleteUser(userId: string): Promise<void> {

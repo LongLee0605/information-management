@@ -73,10 +73,7 @@ export default function AccountPage() {
         open={showAddModal}
         defaultCif={defaultCif}
         onClose={() => setShowAddModal(false)}
-        onSuccess={() => {
-          setShowAddModal(false);
-          refetchAccounts();
-        }}
+        onSuccess={refetchAccounts}
       />
     </UserPageShell>
   );

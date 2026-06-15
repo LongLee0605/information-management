@@ -118,7 +118,6 @@ export default function ReportsPage() {
             fromDate={fromDate}
             toDate={toDate}
             onApply={handleApplyDateFilter}
-            className="mb-6"
           />
         ) : undefined
       }

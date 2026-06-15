@@ -26,11 +26,12 @@ export interface EnrichedBankAccount extends CustomerBankAccount {
 export interface CreateBankAccountInput {
   cif: string;
   accountType: BankAccountType;
-  bankId: string;
+  bankId?: string;
 }
 
 export interface CifVerificationResult {
   userId: string;
   cif: string;
   fullName: string;
+  phone: string;
 }

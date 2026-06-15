@@ -2,7 +2,7 @@ import { reloadMoneyFlowEdgesFromBase } from '@/utils/moneyFlowTraceBuilder';
 import { clearRuntimeStore } from '@/utils/transferRuntimeStore';
 
 const DEMO_DB_VERSION_KEY = 'ufm:demo-db-version';
-const DEMO_DB_VERSION = '2026-06-07-customers-v2';
+const DEMO_DB_VERSION = '2026-06-15-moneyflow-v3';
 
 export function migrateDemoDatabase(): void {
   if (typeof sessionStorage === 'undefined') {

@@ -8,3 +8,4 @@ export { useActiveUserId } from './useActiveUserId';
 export { useCanonicalUserRoute } from './useCanonicalUserRoute';
 export { useCustomerAccounts } from './useCustomerAccounts';
 export { useAllCustomerAccounts } from './useAllCustomerAccounts';
+export { useDebouncedValue } from './useDebouncedValue';

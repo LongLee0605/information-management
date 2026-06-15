@@ -1,4 +1,4 @@
-export type { User, Gender, CreateUserInput } from './user';
+export type { User, Gender, CreateUserInput, CreateUserResult } from './user';
 export type {
   BankAccountType,
   BankAccountStatus,

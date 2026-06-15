@@ -20,7 +20,7 @@ export function TabList<T extends string>({
 }: TabListProps<T>) {
   return (
     <div
-      className={cn('dashboard-card mb-6 flex overflow-x-auto', className)}
+      className={cn('dashboard-card flex overflow-x-auto', className)}
       role="tablist"
       aria-label="Điều hướng tab"
     >

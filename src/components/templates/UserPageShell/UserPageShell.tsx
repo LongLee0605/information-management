@@ -44,7 +44,7 @@ export function UserPageShell({
 }: UserPageShellProps) {
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="page-stack">
         <Skeleton className="h-24 w-full rounded-lg" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Skeleton className="h-24 rounded-lg" />

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { Select } from '@/components/atoms/Select';
-import { CUSTOMER_BANK_OPTIONS } from '@/constants/banks';
+import { SuccessCelebrationBackdrop } from '@/components/molecules/SuccessCelebrationBackdrop';
 import { createBankAccount, verifyCif } from '@/services/accountService';
-import type { BankAccountType, CifVerificationResult } from '@/types';
-import { ACCOUNT_TYPE_FILTER_OPTIONS } from '@/utils/accountFilter';
+import type { BankAccountType, CifVerificationResult, EnrichedBankAccount } from '@/types';
+import { formatAccountNumberDisplay } from '@/utils/accountRegistry';
+import { formatPhoneDisplay } from '@/utils/accountNumber';
 import { cn } from '@/utils';
 
 interface AddAccountModalProps {
@@ -23,14 +24,19 @@ interface AddAccountModalContentProps {
 interface FormState {
   cif: string;
   accountType: BankAccountType | '';
-  bankId: string;
 }
 
 const EMPTY_FORM: FormState = {
   cif: '',
   accountType: '',
-  bankId: '',
 };
+
+const ACCOUNT_TYPE_CREATE_OPTIONS: { value: BankAccountType; label: string }[] = [
+  { value: 'payment', label: 'Thanh toán' },
+  { value: 'savings', label: 'Tiết kiệm' },
+  { value: 'debit', label: 'Ghi nợ' },
+  { value: 'overdraft', label: 'Thấu chi' },
+];
 
 function BackIcon({ className }: { className?: string }) {
   return (
@@ -50,13 +56,96 @@ function CardIcon({ className }: { className?: string }) {
   );
 }
 
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M5 12l5 5L20 7" />
+    </svg>
+  );
+}
+
+function SuccessCheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 12l3 3 5-6" />
+    </svg>
+  );
+}
+
+function AccountSuccessView({
+  account,
+  onBack,
+}: {
+  account: EnrichedBankAccount;
+  onBack: () => void;
+}) {
+  const typeLabel = ACCOUNT_TYPE_CREATE_OPTIONS.find(
+    (option) => option.value === account.accountType,
+  )?.label ?? account.accountTypeLabel;
+
+  return (
+    <div className="relative overflow-hidden">
+      <SuccessCelebrationBackdrop />
+      <div className="relative text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <SuccessCheckIcon className="h-8 w-8" />
+        </div>
+
+        <h2 className="text-xl font-bold text-green-700">Tạo Tài Khoản Thành Công!</h2>
+        <p className="mt-1 text-sm text-muted">Tài khoản đã được khởi tạo trong hệ thống</p>
+
+        <div className="mt-6 rounded-xl border border-primary-100 bg-primary-50 px-6 py-5">
+          <p className="text-sm text-muted">Số tài khoản</p>
+          <p className="mt-1 text-3xl font-bold tracking-wide text-primary-700">
+            {formatAccountNumberDisplay(account.accountNumber)}
+          </p>
+          <span className="mt-2 inline-block rounded-full bg-white px-3 py-1 text-xs font-medium text-primary-700 shadow-sm">
+            {typeLabel}
+          </span>
+        </div>
+
+        <div className="mt-4 rounded-xl bg-table-stripe px-5 py-4 text-left">
+          <p className="mb-3 text-sm font-semibold text-muted">Thông tin tài khoản</p>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Số CIF</dt>
+              <dd className="font-medium text-foreground">{account.cif}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Chủ tài khoản</dt>
+              <dd className="font-medium text-foreground">{account.fullName}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Loại tài khoản</dt>
+              <dd className="font-medium text-foreground">{typeLabel}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">Trạng thái</dt>
+              <dd className="font-medium capitalize text-foreground">
+                {account.status === 'active' ? 'Active' : 'Inactive'}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <Button variant="primary" type="button" className="mt-6 w-full" onClick={onBack}>
+          Quay lại danh sách
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function AddAccountModalContent({
   defaultCif,
   onClose,
   onSuccess,
 }: AddAccountModalContentProps) {
+  const [step, setStep] = useState<'form' | 'success'>('form');
   const [form, setForm] = useState<FormState>({ ...EMPTY_FORM, cif: defaultCif });
   const [verifiedCif, setVerifiedCif] = useState<CifVerificationResult | null>(null);
+  const [createdAccount, setCreatedAccount] = useState<EnrichedBankAccount | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [checkingCif, setCheckingCif] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -95,18 +184,14 @@ function AddAccountModalContent({
   }, [defaultCif]);
 
   const canCheckCif = form.cif.trim().length > 0;
-  const isValid = Boolean(
-    verifiedCif
-    && form.accountType
-    && form.bankId,
-  );
+  const isValid = Boolean(verifiedCif && form.accountType);
 
-  const cifHint = useMemo(() => {
-    if (!verifiedCif) {
-      return null;
+  const phonePreview = useMemo(() => {
+    if (!verifiedCif?.phone.trim()) {
+      return '—';
     }
 
-    return `Khách hàng: ${verifiedCif.fullName}`;
+    return formatPhoneDisplay(verifiedCif.phone);
   }, [verifiedCif]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -122,6 +207,11 @@ function AddAccountModalContent({
       return;
     }
 
+    onClose();
+  }
+
+  function handleBackToList() {
+    onSuccess();
     onClose();
   }
 
@@ -159,12 +249,12 @@ function AddAccountModalContent({
     setError(null);
 
     try {
-      await createBankAccount({
+      const account = await createBankAccount({
         cif: verifiedCif.cif,
         accountType: form.accountType,
-        bankId: form.bankId,
       });
-      onSuccess();
+      setCreatedAccount(account);
+      setStep('success');
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -174,6 +264,24 @@ function AddAccountModalContent({
     } finally {
       setSaving(false);
     }
+  }
+
+  if (step === 'success' && createdAccount) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-account-success-title"
+          className="dashboard-card relative w-full max-w-xl overflow-hidden p-6"
+        >
+          <h2 id="add-account-success-title" className="sr-only">
+            Tạo tài khoản thành công
+          </h2>
+          <AccountSuccessView account={createdAccount} onBack={handleBackToList} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -216,24 +324,44 @@ function AddAccountModalContent({
               <input
                 type="text"
                 value={form.cif}
-                onChange={(event) => updateField('cif', event.target.value.toUpperCase())}
-                className="form-input flex-1 uppercase"
+                onChange={(event) => updateField('cif', event.target.value.replace(/\D/g, ''))}
+                onBlur={() => {
+                  if (!verifiedCif && canCheckCif) {
+                    void handleCheckCif();
+                  }
+                }}
+                className="form-input flex-1"
                 placeholder="Nhập số CIF"
+                inputMode="numeric"
               />
-              <Button
-                variant="secondary"
-                type="button"
-                className="shrink-0"
-                disabled={!canCheckCif || checkingCif}
-                onClick={handleCheckCif}
-              >
-                {checkingCif ? 'Đang kiểm tra...' : 'Kiểm Tra CIF'}
-              </Button>
+              {verifiedCif ? (
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white">
+                  <CheckIcon className="h-4 w-4" />
+                  Hợp lệ
+                </span>
+              ) : (
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className="shrink-0"
+                  disabled={!canCheckCif || checkingCif}
+                  onClick={handleCheckCif}
+                >
+                  {checkingCif ? 'Đang kiểm tra...' : 'Kiểm tra'}
+                </Button>
+              )}
             </div>
-            {cifHint && (
-              <p className="mt-1.5 text-xs font-medium text-green-700">{cifHint}</p>
-            )}
           </div>
+
+          {verifiedCif && (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+              <p className="text-xs text-muted">Thông tin khách hàng</p>
+              <p className="mt-1 text-base font-bold text-primary-700">{verifiedCif.fullName}</p>
+              <p className="mt-0.5 text-sm text-foreground">
+                SĐT: {verifiedCif.phone.trim() || '—'}
+              </p>
+            </div>
+          )}
 
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-foreground">
@@ -244,7 +372,7 @@ function AddAccountModalContent({
               onChange={(value) => updateField('accountType', value as BankAccountType | '')}
               options={[
                 { value: '', label: 'Chọn loại tài khoản' },
-                ...ACCOUNT_TYPE_FILTER_OPTIONS.map((option) => ({
+                ...ACCOUNT_TYPE_CREATE_OPTIONS.map((option) => ({
                   value: option.value,
                   label: option.label,
                 })),
@@ -254,24 +382,14 @@ function AddAccountModalContent({
             />
           </label>
 
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">
-              Ngân Hàng <span className="text-red-600">*</span>
-            </span>
-            <Select
-              value={form.bankId}
-              onChange={(value) => updateField('bankId', value)}
-              options={[
-                { value: '', label: 'Chọn ngân hàng' },
-                ...CUSTOMER_BANK_OPTIONS.map((bank) => ({
-                  value: bank.id,
-                  label: bank.name,
-                })),
-              ]}
-              disabled={!verifiedCif}
-              aria-label="Ngân hàng"
-            />
-          </label>
+          {verifiedCif && (
+            <div className="rounded-xl border border-primary-100 bg-primary-50 px-4 py-3 text-sm">
+              <p className="font-medium text-primary-700">Số tài khoản sẽ được hệ thống sinh tự động</p>
+              <p className="mt-1 text-muted">
+                Theo số điện thoại đăng ký: {phonePreview}
+              </p>
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -280,7 +398,7 @@ function AddAccountModalContent({
               Hủy
             </Button>
             <Button
-              variant="primary"
+              variant="green"
               type="submit"
               disabled={!isValid || saving}
               className={cn(!isValid && 'opacity-50')}

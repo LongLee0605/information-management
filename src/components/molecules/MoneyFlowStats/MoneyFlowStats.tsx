@@ -33,7 +33,7 @@ export function MoneyFlowStatsCards({ stats, periodLabel, className }: MoneyFlow
       )}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((card, index) => (
-          <div key={card.key} className={cn('dashboard-card p-5 text-center', card.bg)}>
+          <div key={card.key} className={cn('dashboard-card p-4 text-center', card.bg)}>
             <p className={cn('text-2xl font-bold sm:text-3xl', card.color)}>{values[index]}</p>
             <p className="mt-1 text-xs font-medium text-muted sm:text-sm">{card.label}</p>
           </div>

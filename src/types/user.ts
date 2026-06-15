@@ -23,3 +23,8 @@ export interface CreateUserInput {
   gender: Gender;
   address: string;
 }
+
+export interface CreateUserResult {
+  user: User;
+  cif: string;
+}

@@ -11,7 +11,7 @@ export function PageToolbar({ title, subtitle, children, className }: PageToolba
   return (
     <div
       className={cn(
-        'dashboard-card mb-6 flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between',
+        'dashboard-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5',
         className,
       )}
     >
