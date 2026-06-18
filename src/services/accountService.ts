@@ -1,145 +1,89 @@
-import customerBankAccountsData from '@/data/customerBankAccounts.json';
-import { MOCK_DELAY_MS } from '@/constants';
-import { getCustomerBankOption } from '@/constants/banks';
+import api from '@/lib/api';
 import type {
+  BankAccountType,
   CifVerificationResult,
   CreateBankAccountInput,
-  CustomerBankAccount,
   EnrichedBankAccount,
 } from '@/types';
-import { ACCOUNT_TYPE_FILTER_OPTIONS } from '@/utils/accountFilter';
-import {
-  getAccountsByUserId,
-  getAllBankAccounts,
-  getUserIdFromCif,
-  invalidateAccountRegistryCache,
-} from '@/utils/accountRegistry';
-import {
-  appendRuntimeCustomerBankAccounts,
-  loadRuntimeCustomerBankAccounts,
-  removeRuntimeAccountById,
-} from '@/utils/customerAccountRuntimeStore';
-import { isAccountDeleted, markAccountDeleted } from '@/utils/deletedAccountsRuntimeStore';
-import { isUserDeleted } from '@/utils/deletedUsersRuntimeStore';
-import { getUserById } from '@/services/userService';
-import {
-  collectExistingAccountNumbers,
-  generateUniqueAccountNumber,
-} from '@/utils/accountNumber';
-import { delay } from '@/utils';
 
-const baseAccounts = customerBankAccountsData as CustomerBankAccount[];
-const DEFAULT_BANK_ID = 'ocb';
+interface ApiAccount {
+  MaTaiKhoan: number;
+  MaKhachHang: number;
+  HoTen: string;
+  CIF: string;
+  SoTaiKhoan: string;
+  LoaiTaiKhoan: string;
+  NganHang: string;
+  SoDu: number;
+  SoDuDongBang: number;
+  TrangThai: string;
+  SoDuKhaDung: number;
+}
 
-export async function getCustomerBankAccountsByUserId(
-  userId: string,
-): Promise<EnrichedBankAccount[]> {
-  await delay(MOCK_DELAY_MS);
-  return getAccountsByUserId(userId);
+function mapAccountType(loai: string): BankAccountType {
+  const map: Record<string, BankAccountType> = {
+    payment: 'payment', savings: 'savings', debit: 'debit', overdraft: 'overdraft',
+  };
+  return map[loai?.toLowerCase()] ?? 'payment';
+}
+
+function mapAccount(row: ApiAccount): EnrichedBankAccount {
+  return {
+    id: String(row.MaTaiKhoan),
+    userId: String(row.MaKhachHang),
+    cif: row.CIF ?? row.SoTaiKhoan,
+    accountNumber: row.SoTaiKhoan,
+    accountType: mapAccountType(row.LoaiTaiKhoan),
+    accountTypeLabel: row.LoaiTaiKhoan,
+    balance: row.SoDu,
+    frozenBalance: row.SoDuDongBang,
+    status: row.TrangThai === 'hoat_dong' ? 'active' : 'inactive',
+    bank: row.NganHang,
+    bankBadgeClass: 'bg-orange-500 text-white',
+    fullName: row.HoTen,
+    avatar: '',
+    availableBalance: row.SoDuKhaDung,
+  };
 }
 
 export async function getAllCustomerBankAccounts(): Promise<EnrichedBankAccount[]> {
-  await delay(MOCK_DELAY_MS);
-  return getAllBankAccounts();
+  const { data } = await api.get<ApiAccount[]>('/api/accounts');
+  return data.map(mapAccount);
+}
+
+export async function getCustomerBankAccountsByUserId(userId: string): Promise<EnrichedBankAccount[]> {
+  const { data } = await api.get<ApiAccount[]>('/api/accounts', {
+    params: { customerId: userId },
+  });
+  return data.map(mapAccount);
 }
 
 export async function verifyCif(cif: string): Promise<CifVerificationResult> {
-  await delay(MOCK_DELAY_MS);
-
-  const trimmedCif = cif.trim();
-  const userId = getUserIdFromCif(trimmedCif);
-
-  if (!userId || isUserDeleted(userId)) {
-    throw new Error('Không tìm thấy khách hàng với số CIF này.');
-  }
-
-  const user = await getUserById(userId);
-  if (!user) {
-    throw new Error('Không tìm thấy khách hàng với số CIF này.');
-  }
-
-  const accounts = getAccountsByUserId(userId);
-  const canonicalCif = accounts[0]?.cif ?? trimmedCif;
-
+  const { data } = await api.get<ApiAccount[]>('/api/accounts', {
+    params: { cif: cif.trim() },
+  });
+  if (!data.length) throw new Error('Không tìm thấy khách hàng với số CIF này.');
+  const row = data[0];
   return {
-    userId,
-    cif: canonicalCif,
-    fullName: user.fullName,
-    phone: user.phone,
+    userId: String(row.MaKhachHang),
+    cif: row.CIF ?? row.SoTaiKhoan,
+    fullName: row.HoTen,
+    phone: '',
   };
 }
 
 export async function createBankAccount(input: CreateBankAccountInput): Promise<EnrichedBankAccount> {
-  await delay(MOCK_DELAY_MS);
-
   const verification = await verifyCif(input.cif);
-  const bank = getCustomerBankOption(input.bankId ?? DEFAULT_BANK_ID);
-
-  if (!bank) {
-    throw new Error('Ngân hàng không hợp lệ.');
-  }
-
-  const accountTypeLabel = ACCOUNT_TYPE_FILTER_OPTIONS.find(
-    (option) => option.value === input.accountType,
-  )?.label;
-
-  if (!accountTypeLabel) {
-    throw new Error('Loại tài khoản không hợp lệ.');
-  }
-
-  const existingAccounts = [
-    ...baseAccounts,
-    ...loadRuntimeCustomerBankAccounts(),
-  ].filter((account) => account.userId === verification.userId);
-
-  const existingNumbers = collectExistingAccountNumbers(baseAccounts);
-  const accountNumber = generateUniqueAccountNumber(existingNumbers, verification.phone);
-  const hasPrimaryPayment = existingAccounts.some(
-    (account) => account.accountType === 'payment' && account.isPrimary,
-  );
-
-  const account: CustomerBankAccount = {
-    id: `acc-${verification.userId}-${input.accountType}-${Date.now()}`,
-    userId: verification.userId,
-    cif: verification.cif,
-    accountNumber,
-    accountType: input.accountType,
-    accountTypeLabel,
-    balance: input.accountType === 'payment' ? 10_000_000 : 0,
-    frozenBalance: 0,
-    status: 'active',
-    bank: bank.name,
-    bankBadgeClass: bank.badgeClass,
-    isPrimary: input.accountType === 'payment' && !hasPrimaryPayment ? true : undefined,
-  };
-
-  appendRuntimeCustomerBankAccounts([account]);
-
-  const enriched = getAccountsByUserId(verification.userId).find((item) => item.id === account.id);
-  if (!enriched) {
-    throw new Error('Không thể tạo tài khoản. Vui lòng thử lại.');
-  }
-
-  return enriched;
+  const { data } = await api.post<ApiAccount>('/api/accounts', {
+    customerId:     Number(verification.userId),
+    cif:            verification.cif,
+    accountType:    input.accountType,
+    bank:           input.bankId ?? 'OCB',
+    initialBalance: input.accountType === 'payment' ? 10_000_000 : 0,
+  });
+  return mapAccount(data);
 }
 
 export async function deleteBankAccount(accountId: string): Promise<void> {
-  await delay(MOCK_DELAY_MS);
-
-  if (isAccountDeleted(accountId)) {
-    throw new Error('Không tìm thấy tài khoản.');
-  }
-
-  const account = getAllBankAccounts().find((item) => item.id === accountId);
-  if (!account) {
-    throw new Error('Không tìm thấy tài khoản.');
-  }
-
-  const isRuntimeAccount = loadRuntimeCustomerBankAccounts().some((item) => item.id === accountId);
-  if (isRuntimeAccount) {
-    removeRuntimeAccountById(accountId);
-  }
-
-  markAccountDeleted(accountId);
-  invalidateAccountRegistryCache();
+  await api.patch(`/api/accounts/${accountId}/status`, { status: 'dong' });
 }

@@ -1,3 +1,7 @@
+.env
+.env.local
+.env.*.local
+
 # Logs
 logs
 *.log
@@ -23,3 +27,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local-only: docs, plans, xlsx
+docs/
+plans/
+*.xlsx
