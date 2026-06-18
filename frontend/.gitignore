@@ -3,7 +3,9 @@ dist/
 dist-ssr/
 .env
 .env.local
+.env.production
 .env.*.local
+!*.example
 *.log
 .DS_Store
 Thumbs.db

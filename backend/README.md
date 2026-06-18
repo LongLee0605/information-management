@@ -1,62 +1,72 @@
 # QLTT Backend — Express API + SQL Server
 
-## Chạy nhanh
+## Môi trường
+
+| File | Lệnh | Mục đích |
+|------|------|----------|
+| `.env.development` | `npm run be` | SQL local Docker, CORS localhost |
+| `.env.production` | `npm run be:prod` | SQL + API trên server |
+
+Tạo file từ mẫu:
+
+```bash
+copy .env.development.example .env.development
+copy .env.production.example .env.production
+```
+
+## Development (local)
 
 ```bash
 cd backend
-copy .env.example .env
 npm install
 npm run be
 ```
 
 - API: http://localhost:3001
-- Health: http://localhost:3001/api/health
 
-`npm run be`: Docker SQL (nếu `DB_HOST=localhost`) → migrate V1–V27 → API.
+## Production (server)
 
-## Cấu hình `.env`
-
-```env
-DB_HOST=<sql-host>
-DB_PORT=1433
-DB_NAME=QLTT
-DB_USER=<sql-user>
-DB_PASSWORD=<sql-password>
-DB_ENCRYPT=false
-DB_TRUST_SERVER_CERT=true
-API_PORT=3001
-CORS_ORIGIN=http://localhost:5173
+```bash
+cd backend
+npm install
+npm run be:prod
 ```
+
+Chỉnh `.env.production` trước khi chạy (DB, CORS cho URL frontend).
 
 ## Lệnh
 
-| Lệnh | Mô tả |
-|------|--------|
-| `npm run be` | Docker + migrate + API |
-| `npm run dev` | Chỉ API (DB đã sẵn sàng) |
-| `npm run db:migrate` | Áp dụng SQL lên server trong `.env` |
-| `npm run db:up` | Bật Docker SQL local |
-| `npm run db:down` | Tắt Docker SQL |
-| `npm run check:api` | Kiểm tra endpoints |
-| `npm run verify:db` | Đối chiếu SQL ↔ API |
+| Lệnh | Môi trường |
+|------|------------|
+| `npm run be` | development |
+| `npm run be:prod` | production |
+| `npm run dev` | API only (development) |
+| `npm run db:migrate` | development DB |
+| `npm run db:migrate:prod` | production DB |
+| `npm run check:api` | kiểm tra endpoints |
+| `npm run verify:db` | đối chiếu SQL ↔ API |
 
-## Đẩy SQL lên server
+## CORS (production)
 
-```bash
-npm run db:migrate
-npm run verify:db
+Trong `.env.production`, thêm **đúng URL** trình duyệt mở frontend (origin):
+
+```env
+CORS_ORIGIN=http://157.10.198.41:5173,http://localhost:5173
 ```
 
-**Cảnh báo:** `db:migrate` chạy lại toàn bộ V1–V27 (drop/create + sample data).
+Sau khi deploy code mới lên server API:
 
-## API endpoints
+```bash
+npm run be:prod
+npm run test:cors:prod   # kiểm tra preflight
+```
 
-| Endpoint | Mô tả |
-|----------|--------|
-| `GET /api/health` | Health + DB |
-| `GET /api/customers` | Khách hàng |
-| `GET /api/accounts` | Tài khoản |
-| `GET /api/transactions` | Giao dịch |
-| `GET /api/reports/*` | Báo cáo |
+Log khởi động phải hiện: `[QLTT] API [production]` và danh sách CORS allowed.
 
-Thiết kế SP: `sql/SP_DESIGN.md`
+## Kiểm tra môi trường
+
+| Lệnh | Ý nghĩa |
+|------|---------|
+| `npm run test:cors` | CORS dev (localhost:3001) |
+| `npm run test:cors:prod` | CORS theo `.env.production` |
+| `npm run check:api:prod` | API + DB production |

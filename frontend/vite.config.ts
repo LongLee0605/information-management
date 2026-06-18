@@ -7,6 +7,20 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const apiTarget = env.VITE_API_URL?.trim() || 'http://localhost:3001';
 
+  if (mode === 'production' && !env.VITE_API_URL?.trim()) {
+    throw new Error(
+      'Thiếu VITE_API_URL trong frontend/.env.production. Copy .env.production.example và chỉnh URL API.',
+    );
+  }
+
+  const proxyConfig = {
+    '/api': {
+      target: apiTarget,
+      changeOrigin: true,
+      secure: false,
+    },
+  };
+
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -15,14 +29,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: true,
       port: 5173,
-      proxy: {
-        '/api': {
-          target: apiTarget,
-          changeOrigin: true,
-          secure: false,
-        },
-      },
+      proxy: proxyConfig,
     },
     build: {
       rollupOptions: {

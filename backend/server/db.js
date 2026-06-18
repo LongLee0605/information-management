@@ -1,6 +1,3 @@
-// server/db.js
-// Connection pool singleton cho SQL Server
-
 import sql from 'mssql';
 import { loadAppEnv } from '../scripts/load-env.js';
 

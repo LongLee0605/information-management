@@ -4,10 +4,9 @@ import {
   markApiOffline,
   markApiOnline,
 } from '@/lib/apiStatus';
+import { resolveApiBaseUrl } from '@/lib/env';
 
-/** URL backend — luôn trỏ thẳng tới API (CORS đã cấu hình trên BE). */
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL?.trim() || 'http://localhost:3001';
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export const API_PATHS = {
   health: '/api/health',

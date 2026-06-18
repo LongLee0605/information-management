@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sql from 'mssql';
 import {
+  getAppEnv,
   getBackendRoot,
   loadAppEnv,
   resolveEnvPath,
@@ -22,10 +23,13 @@ function ensureEnvFile() {
   loadAppEnv();
 
   if (!fs.existsSync(envPath)) {
+    const mode = getAppEnv();
     throw new Error(
-      'Thiếu file backend/.env. Hãy copy backend/.env.example thành backend/.env.',
+      `Thiếu backend/.env.${mode}. Hãy copy backend/.env.${mode}.example`,
     );
   }
+
+  console.log(`[QLTT] Backend khởi động [${getAppEnv()}]`);
 }
 
 function runCommand(command, args, label, { shell } = {}) {
@@ -37,7 +41,10 @@ function runCommand(command, args, label, { shell } = {}) {
       cwd: rootDir,
       stdio: 'inherit',
       shell: useShell,
-      env: process.env,
+      env: {
+        ...process.env,
+        APP_ENV: getAppEnv(),
+      },
     });
 
     child.on('error', reject);
@@ -203,12 +210,15 @@ async function startApiServer() {
     return;
   }
 
-  console.log(`\n▶ Khởi động API server tại http://localhost:${port} (Ctrl+C để dừng)`);
+  console.log(`\n▶ Khởi động API server [${getAppEnv()}] tại http://localhost:${port} (Ctrl+C để dừng)`);
   const child = spawn('node', ['server/index.js'], {
     cwd: rootDir,
     stdio: 'inherit',
     shell: false,
-    env: process.env,
+    env: {
+      ...process.env,
+      APP_ENV: getAppEnv(),
+    },
   });
 
   child.on('exit', (code) => {
@@ -226,7 +236,12 @@ async function main() {
   }
 
   await waitForDatabase();
-  await runCommand('node', ['scripts/migrate.js'], 'Database migration');
+  await runCommand(
+    'node',
+    ['scripts/migrate.js'],
+    `Database migration [${getAppEnv()}]`,
+    { shell: false },
+  );
   await startApiServer();
 }
 

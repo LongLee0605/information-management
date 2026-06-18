@@ -1,9 +1,10 @@
 // scripts/check-api.js — Kiểm tra API + database
-// Usage: npm run check:api
+// Usage: npm run check:api | npm run check:api:prod
 
-import { loadAppEnv } from './load-env.js';
+import { getAppEnv, loadAppEnv } from './load-env.js';
 
 loadAppEnv();
+const mode = getAppEnv();
 const BASE_URL = `http://localhost:${process.env.API_PORT || 3001}`;
 
 const ENDPOINTS = [
@@ -42,7 +43,7 @@ async function checkEndpoint(path) {
 }
 
 async function main() {
-  console.log(`\nKiểm tra API tại ${BASE_URL}\n`);
+  console.log(`\nKiểm tra API [${mode}] tại ${BASE_URL}\n`);
 
   let failed = 0;
 
