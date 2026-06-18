@@ -3,9 +3,36 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
+function parseAllowedHosts(env: Record<string, string>): true | string[] {
+  const fromEnv = (env.VITE_ALLOWED_HOSTS ?? '')
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean);
+
+  if (fromEnv.length > 0) {
+    return fromEnv;
+  }
+
+  const apiUrl = env.VITE_API_URL?.trim();
+  if (apiUrl) {
+    try {
+      const { hostname } = new URL(apiUrl);
+      if (hostname) {
+        return [hostname, 'localhost', '127.0.0.1'];
+      }
+    } catch {
+      // ignore invalid URL
+    }
+  }
+
+  // Dev/LAN: cho phép truy cập qua IP hoặc hostname bất kỳ
+  return true;
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const apiTarget = env.VITE_API_URL?.trim() || 'http://localhost:3001';
+  const allowedHosts = parseAllowedHosts(env);
 
   if (mode === 'production' && !env.VITE_API_URL?.trim()) {
     throw new Error(
@@ -21,6 +48,12 @@ export default defineConfig(({ mode }) => {
     },
   };
 
+  const hostOptions = {
+    host: true,
+    port: 5173,
+    allowedHosts,
+  };
+
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -29,8 +62,11 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      host: true,
-      port: 5173,
+      ...hostOptions,
+      proxy: proxyConfig,
+    },
+    preview: {
+      ...hostOptions,
       proxy: proxyConfig,
     },
     build: {
