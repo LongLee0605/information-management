@@ -1,0 +1,24 @@
+{
+  "name": "qltt-backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/start-backend.js",
+    "be": "node scripts/start-backend.js",
+    "dev": "node --watch server/index.js",
+    "dev:api": "node --watch server/index.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:up": "docker compose up -d sqlserver",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f sqlserver",
+    "check:api": "node scripts/check-api.js",
+    "verify:db": "node scripts/verify-database.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mssql": "^12.5.5"
+  }
+}

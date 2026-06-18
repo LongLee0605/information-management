@@ -1,50 +1,30 @@
 {
-  "name": "user-finance-manager",
+  "name": "qltt-monorepo",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "description": "QLTT — monorepo backend + frontend",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "dev": "concurrently -n fe,be -c cyan,yellow \"vite\" \"node --watch server/index.js\"",
-    "dev:fe": "vite",
-    "dev:be": "node --watch server/index.js",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "db:migrate": "node scripts/migrate.js",
-    "db:up": "docker compose up -d sqlserver",
-    "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f sqlserver",
-    "server": "node server/index.js"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "axios": "^1.18.0",
-    "canvas-confetti": "^1.9.4",
-    "clsx": "^2.1.1",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-router-dom": "^7.17.0",
-    "recharts": "^3.8.1",
-    "tailwindcss": "^4.3.0"
+    "dev": "node scripts/dev.js",
+    "dev:services": "concurrently -k -n API,WEB -c blue,green \"node backend/scripts/start-backend.js\" \"npm run dev -w qltt-frontend\"",
+    "start": "npm run dev",
+    "setup": "node scripts/setup.js",
+    "env:copy": "node scripts/copy-env.js",
+    "be": "node backend/scripts/start-backend.js",
+    "fe": "npm run dev -w qltt-frontend",
+    "build": "npm run build -w qltt-frontend",
+    "db:migrate": "node backend/scripts/migrate.js",
+    "db:up": "docker compose --env-file .env -f backend/docker-compose.yml up -d sqlserver",
+    "db:down": "docker compose -f backend/docker-compose.yml down",
+    "db:logs": "docker compose -f backend/docker-compose.yml logs -f sqlserver",
+    "check:api": "node backend/scripts/check-api.js",
+    "verify:db": "node backend/scripts/verify-database.js",
+    "postinstall": "node scripts/postinstall.js"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
-    "concurrently": "^10.0.3",
-    "dotenv": "^17.4.2",
-    "eslint": "^10.3.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.6.0",
-    "mssql": "^12.5.5",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.59.2",
-    "vite": "^6.4.3"
+    "concurrently": "^9.2.1"
   }
 }
