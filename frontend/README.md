@@ -42,8 +42,6 @@ npm run start
 
 > Đổi `VITE_API_URL` phải **build lại** (`npm run build`).
 
-Console trình duyệt (production) phải hiện: `[QLTT] FE production · API → http://...`
-
 ## Kiểm tra
 
 ```bash
@@ -51,7 +49,7 @@ npm run build    # bắt buộc có VITE_API_URL trong .env.production
 npm run start
 ```
 
-Mở DevTools → Network: request phải tới `VITE_API_URL`, không phải `localhost`.
+Mở DevTools → Network: request phải tới host API đã cấu hình, không phải `localhost`.
 
 ## Lệnh
 
