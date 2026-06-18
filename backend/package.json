@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node scripts/start-backend.js",
     "be": "node scripts/start-backend.js",
-    "dev": "node --watch server/index.js",
-    "dev:api": "node --watch server/index.js",
+    "dev": "node server/index.js",
+    "dev:api": "node server/index.js",
     "db:migrate": "node scripts/migrate.js",
     "db:up": "docker compose up -d sqlserver",
     "db:down": "docker compose down",

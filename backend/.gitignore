@@ -4,3 +4,9 @@ node_modules/
 .env.*.local
 logs/
 *.log
+*.bak
+*.dump
+*.pem
+*.key
+.DS_Store
+Thumbs.db

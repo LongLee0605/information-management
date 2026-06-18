@@ -4,12 +4,10 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
 export default defineConfig(({ mode }) => {
-  const monorepoRoot = path.resolve(__dirname, '..');
-  const env = loadEnv(mode, monorepoRoot, '');
+  const env = loadEnv(mode, process.cwd(), '');
   const apiTarget = env.VITE_API_URL?.trim() || 'http://localhost:3001';
 
   return {
-    envDir: monorepoRoot,
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

@@ -23,7 +23,7 @@ function ensureEnvFile() {
 
   if (!fs.existsSync(envPath)) {
     throw new Error(
-      'Thiếu file .env tại thư mục gốc project. Hãy copy .env.example thành .env.',
+      'Thiếu file backend/.env. Hãy copy backend/.env.example thành backend/.env.',
     );
   }
 }
