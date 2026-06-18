@@ -1,45 +1,59 @@
-import financeData from '@/data/finance.json';
+import api from '@/lib/api';
 import type { MonthlyFinance, SourceBreakdown, UserFinance } from '@/types';
-import { MOCK_DELAY_MS } from '@/constants';
-import { delay } from '@/utils';
-import { expandMonthlyToAppYears, syncBreakdownWithMonthly } from '@/utils/financeSync';
 
-const finances = financeData as UserFinance[];
-const financeByUserId = new Map(finances.map((item) => [item.userId, item]));
+interface ApiMonthlyChart {
+  Thang: number;
+  Nam: number;
+  TongThuNhap: number;
+  TongChiTieu: number;
+}
 
-function getFinanceRecord(userId: string): UserFinance | undefined {
-  return financeByUserId.get(userId);
+interface ApiPieChart {
+  DanhMuc: string;
+  TongSoTien: number;
+  LoaiGiaoDich: string;
+}
+
+function mapMonthly(row: ApiMonthlyChart): MonthlyFinance {
+  return {
+    month: `${row.Nam}-${String(row.Thang).padStart(2, '0')}`,
+    income: row.TongThuNhap ?? 0,
+    expense: row.TongChiTieu ?? 0,
+  };
+}
+
+function mapBreakdown(row: ApiPieChart): SourceBreakdown {
+  return {
+    source: row.DanhMuc,
+    amount: row.TongSoTien,
+    type: row.LoaiGiaoDich === 'credit' ? 'income' : 'expense',
+  };
 }
 
 export async function getMonthlyFinance(userId: string): Promise<MonthlyFinance[]> {
-  await delay(MOCK_DELAY_MS);
-  const record = getFinanceRecord(userId);
-  return expandMonthlyToAppYears(record?.monthly ?? []);
+  const { data } = await api.get<ApiMonthlyChart[]>('/api/reports/monthly-chart', {
+    params: { customerId: userId },
+  });
+  return data.map(mapMonthly);
 }
 
 export async function getSourceBreakdown(userId: string): Promise<SourceBreakdown[]> {
-  await delay(MOCK_DELAY_MS);
-  const record = getFinanceRecord(userId);
-  if (!record) {
-    return [];
-  }
-
-  const monthly = expandMonthlyToAppYears(record.monthly);
-  return syncBreakdownWithMonthly(record.breakdown, monthly);
+  const [income, expense] = await Promise.all([
+    api.get<ApiPieChart[]>('/api/reports/pie-chart', {
+      params: { customerId: userId, transactionType: 'credit' },
+    }),
+    api.get<ApiPieChart[]>('/api/reports/pie-chart', {
+      params: { customerId: userId, transactionType: 'debit' },
+    }),
+  ]);
+  return [...income.data.map(mapBreakdown), ...expense.data.map(mapBreakdown)];
 }
 
 export async function getUserFinance(userId: string): Promise<UserFinance | null> {
-  await delay(MOCK_DELAY_MS);
-  const record = getFinanceRecord(userId);
-  if (!record) {
-    return null;
-  }
-
-  const monthly = expandMonthlyToAppYears(record.monthly);
-
-  return {
-    ...record,
-    monthly,
-    breakdown: syncBreakdownWithMonthly(record.breakdown, monthly),
-  };
+  const [monthly, breakdown] = await Promise.all([
+    getMonthlyFinance(userId),
+    getSourceBreakdown(userId),
+  ]);
+  if (!monthly.length && !breakdown.length) return null;
+  return { userId, monthly, breakdown };
 }
