@@ -1,20 +1,25 @@
 # QLTT Backend — Express API + SQL Server
 
-## Môi trường
+## Hai môi trường tách biệt
 
-| File | Lệnh | Mục đích |
-|------|------|----------|
-| `.env.development` | `npm run be` | SQL local Docker, CORS localhost |
-| `.env.production` | `npm run be:prod` | SQL + API trên server |
+| | Development (local) | Production (server) |
+|---|---|---|
+| **File env** | `.env.development` | `.env.production` |
+| **Lệnh chạy** | `npm run be` | `npm run be:prod` |
+| **DB** | Docker localhost | SQL server UIT |
+| **CORS** | localhost:5173 | origin FE trên server |
 
-Tạo file từ mẫu:
+**Không sửa lẫn file** — local chỉ dùng `.env.development`, server chỉ dùng `.env.production`.
+
+`.env.development` đã có sẵn trong repo. Production tạo **một lần** trên server:
 
 ```bash
-copy .env.development.example .env.development
-copy .env.production.example .env.production
+npm run setup:prod
+# chỉnh .env.production (user/password SQL)
+npm run be:prod
 ```
 
-## Development (local)
+## Development (máy local)
 
 ```bash
 cd backend
@@ -23,16 +28,18 @@ npm run be
 ```
 
 - API: http://localhost:3001
+- SQL: Docker tự bật
 
-## Production (server)
+## Production (server uit-01)
 
 ```bash
 cd backend
 npm install
+npm run setup:prod    # lần đầu
 npm run be:prod
 ```
 
-Chỉnh `.env.production` trước khi chạy (DB, CORS cho URL frontend).
+Kiểm tra: http://&lt;host&gt;:3001/api/ phải trả `"env":"production"`.
 
 ## Lệnh
 
@@ -40,33 +47,8 @@ Chỉnh `.env.production` trước khi chạy (DB, CORS cho URL frontend).
 |------|------------|
 | `npm run be` | development |
 | `npm run be:prod` | production |
-| `npm run dev` | API only (development) |
+| `npm run setup:prod` | tạo `.env.production` từ mẫu |
 | `npm run db:migrate` | development DB |
 | `npm run db:migrate:prod` | production DB |
-| `npm run check:api` | kiểm tra endpoints |
-| `npm run verify:db` | đối chiếu SQL ↔ API |
-
-## CORS (production)
-
-Trong `.env.production`, thêm **đúng URL** trình duyệt mở frontend (origin):
-
-```env
-CORS_ORIGIN=http://157.10.198.41:5173,http://localhost:5173
-```
-
-Sau khi deploy code mới lên server API:
-
-```bash
-npm run be:prod
-npm run test:cors:prod   # kiểm tra preflight
-```
-
-Log khởi động phải hiện: `[QLTT] API [production]` và danh sách CORS allowed.
-
-## Kiểm tra môi trường
-
-| Lệnh | Ý nghĩa |
-|------|---------|
-| `npm run test:cors` | CORS dev (localhost:3001) |
-| `npm run test:cors:prod` | CORS theo `.env.production` |
-| `npm run check:api:prod` | API + DB production |
+| `npm run test:cors` | CORS dev |
+| `npm run test:cors:prod` | CORS production |

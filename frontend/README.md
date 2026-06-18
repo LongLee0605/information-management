@@ -1,17 +1,26 @@
 # QLTT Frontend — React + Vite
 
-## Môi trường
+## Hai môi trường tách biệt
 
-| File | Lệnh | `VITE_API_URL` |
-|------|------|----------------|
-| `.env.development` | `npm run fe` | `http://localhost:3001` (proxy) |
-| `.env.production` | `npm run build` / `npm run start` | URL API public |
+| | Development (local) | Production (server) |
+|---|---|---|
+| **File env** | `.env.development` | `.env.production` |
+| **Lệnh chạy** | `npm run fe` | `npm run build` + `npm run start` |
+| **Port** | 5173 | 1111 |
+| **Gọi API** | Vite proxy → localhost:3001 | Gọi thẳng URL API |
+
+**Không sửa lẫn file** — local chỉ dùng `.env.development`, server chỉ dùng `.env.production`.
+
+`.env.development` đã có sẵn trong repo. Production tạo **một lần** trên server:
 
 ```bash
-copy .env.production.example .env.production
+npm run setup:prod
+# chỉnh .env.production nếu cần
+npm run build
+npm run start
 ```
 
-## Development (local)
+## Development (máy local)
 
 ```bash
 cd frontend
@@ -20,36 +29,23 @@ npm run fe
 ```
 
 - App: http://localhost:5173
-- Gọi `/api` qua Vite proxy → tránh CORS
+- Proxy `/api` → backend local (không CORS)
 - **Chạy backend trước:** `cd backend && npm run be`
 
-## Production (deploy)
-
-Trên máy build, chỉnh `.env.production`:
-
-```env
-VITE_API_URL=http://<api-host>:3001
-```
+## Production (server uit-01)
 
 ```bash
 cd frontend
+npm install
+npm run setup:prod    # lần đầu
 npm run build
 npm run start
 ```
 
-- Serve `dist/` tại http://0.0.0.0:5173
-- Browser gọi thẳng API → backend phải bật CORS cho origin FE
+- App: http://uit-01.qasystem.com.vn:1111
+- API: http://uit-01.qasystem.com.vn:3001
 
-> Đổi `VITE_API_URL` phải **build lại** (`npm run build`).
-
-## Kiểm tra
-
-```bash
-npm run build    # bắt buộc có VITE_API_URL trong .env.production
-npm run start
-```
-
-Mở DevTools → Network: request phải tới host API đã cấu hình, không phải `localhost`.
+> Đổi `.env.production` phải **build lại** (`npm run build`).
 
 ## Lệnh
 
@@ -57,5 +53,6 @@ Mở DevTools → Network: request phải tới host API đã cấu hình, khôn
 |------|------------|
 | `npm run fe` | development |
 | `npm run build` | production build |
-| `npm run start` | production preview/serve |
+| `npm run start` | production serve |
+| `npm run setup:prod` | tạo `.env.production` từ mẫu |
 | `npm run lint` | ESLint |

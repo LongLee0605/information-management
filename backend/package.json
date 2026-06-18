@@ -7,6 +7,7 @@
     "start": "cross-env APP_ENV=development node scripts/start-backend.js",
     "be": "cross-env APP_ENV=development node scripts/start-backend.js",
     "be:prod": "cross-env APP_ENV=production node scripts/start-backend.js",
+    "setup:prod": "node scripts/setup-env.js production",
     "dev": "cross-env APP_ENV=development node server/index.js",
     "dev:prod": "cross-env APP_ENV=production node server/index.js",
     "db:migrate": "cross-env APP_ENV=development node scripts/migrate.js",

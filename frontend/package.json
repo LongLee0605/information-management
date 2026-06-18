@@ -8,8 +8,9 @@
     "fe": "vite --mode development",
     "build": "tsc -b && vite build --mode production",
     "build:dev": "tsc -b && vite build --mode development",
-    "preview": "vite preview --host 0.0.0.0 --port 5173 --mode production",
-    "start": "vite preview --host 0.0.0.0 --port 5173 --mode production",
+    "setup:prod": "node scripts/setup-env.js production",
+    "preview": "vite preview --host 0.0.0.0 --mode production",
+    "start": "vite preview --host 0.0.0.0 --mode production",
     "lint": "eslint ."
   },
   "dependencies": {

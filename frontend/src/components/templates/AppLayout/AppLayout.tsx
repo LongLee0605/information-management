@@ -2,14 +2,11 @@ import { Link, Outlet } from 'react-router-dom';
 import { ApiStatusBanner } from '@/components/molecules/ApiStatusBanner';
 import { Sidebar } from '@/components/templates/Sidebar';
 import { APP_NAME, ROUTES } from '@/constants';
-
 interface AppLayoutProps {
-  children?: React.ReactNode;
+    children?: React.ReactNode;
 }
-
 export function AppLayout({ children }: AppLayoutProps) {
-  return (
-    <div className="flex min-h-screen bg-page-bg">
+    return (<div className="flex min-h-screen bg-page-bg">
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -40,6 +37,5 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </footer>
       </div>
-    </div>
-  );
+    </div>);
 }

@@ -6,6 +6,7 @@ dist-ssr/
 .env.production
 .env.*.local
 !*.example
+!/.env.development
 *.log
 .DS_Store
 Thumbs.db

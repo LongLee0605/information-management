@@ -1,5 +1,4 @@
 import { lazy } from 'react';
-
 export const HomePage = lazy(() => import('@/pages/HomePage'));
 export const AccountPage = lazy(() => import('@/pages/AccountPage'));
 export const AllAccountsPage = lazy(() => import('@/pages/AllAccountsPage'));
