@@ -1,4 +1,4 @@
-import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { AppLayout } from '@/components/templates/AppLayout';
 import { ApiStatusProvider, SelectedUserProvider } from '@/context';
 import { LazyPage } from '@/app/LazyPage';
@@ -75,6 +75,10 @@ export const router = createBrowserRouter([
                         element: (<LazyPage>
                 <ReportsPage />
               </LazyPage>),
+                    },
+                    {
+                        path: '*',
+                        element: <Navigate to={ROUTES.HOME} replace />,
                     },
                 ],
             },

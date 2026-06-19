@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getAppEnv, isAllowedCorsOrigin, loadAppEnv, parseCorsOrigins, validateBackendEnv, } from '../scripts/load-env.js';
 import { getPool } from './db.js';
 import customersRouter from './routes/customers.js';
@@ -79,7 +82,18 @@ app.use('/api/customers', customersRouter);
 app.use('/api/accounts', accountsRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/reports', reportsRouter);
-app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+if (fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+    app.get(/^(?!\/api).*/, (_req, res) => {
+        res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+}
+else {
+    app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
+}
 app.use((err, _req, res, _next) => {
     console.error(err);
     res.status(500).json({ error: err.message });

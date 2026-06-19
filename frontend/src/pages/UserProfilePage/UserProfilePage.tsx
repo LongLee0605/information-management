@@ -6,7 +6,7 @@ import { UserProfile } from '@/components/organisms/UserProfile';
 import { UserPageShell } from '@/components/templates/UserPageShell';
 import { useSelectedUserContext } from '@/context';
 import { userAccountPath } from '@/constants';
-import { useCanonicalUserRoute, useUser, useUserFinance } from '@/hooks';
+import { useCanonicalUserRoute, useRedirectIfUserRequired, useUser, useUserFinance } from '@/hooks';
 
 export default function UserProfilePage() {
     const { id } = useParams<{
@@ -17,6 +17,7 @@ export default function UserProfilePage() {
     useCanonicalUserRoute();
     const { user, userId, loading, error, notFound, refetch } = useUser(id);
     const { summary } = useUserFinance(id);
+    useRedirectIfUserRequired(notFound, loading);
     useEffect(() => {
         if (userId) {
             setContextUserId(userId);
@@ -27,7 +28,7 @@ export default function UserProfilePage() {
             <UserPageShell
                 user={user}
                 loading={loading}
-                notFound={notFound}
+                notFound={false}
                 error={error}
                 title="Hồ Sơ Khách Hàng"
                 subtitle={user ? `Chi tiết thông tin · ${user.fullName}` : undefined}

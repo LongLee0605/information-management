@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getUserFinance, type FinanceDateRange } from '@/services/financeService';
 import type { MonthlyFinance, SourceBreakdown } from '@/types';
 import { calculateFinanceSummary, transformBreakdownToPieChart, transformMonthlyToLineChart, } from '@/utils/chartTransformers';
+import { useRouteUserId } from '@/hooks/useRouteUserId';
 import { subscribeDataChange } from '@/utils/dataChangeBus';
 import { getEffectiveAppDateRange } from '@/utils/demoDate';
 import { PIE_COLORS } from '@/constants';
-import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
 
 interface UseUserFinanceOptions {
     dateRange?: FinanceDateRange;
@@ -33,11 +33,11 @@ function resolveDateRange(options?: UseUserFinanceOptions): FinanceDateRange {
 }
 
 export function useUserFinance(routeParam: string | undefined, options?: UseUserFinanceOptions): UseUserFinanceResult {
-    const userId = useMemo(() => resolveUserIdFromRouteParam(routeParam), [routeParam]);
+    const { userId, resolving } = useRouteUserId(routeParam);
     const dateRange = useMemo(() => resolveDateRange(options), [options?.dateRange?.fromDate, options?.dateRange?.toDate]);
     const [monthly, setMonthly] = useState<MonthlyFinance[]>([]);
     const [breakdown, setBreakdown] = useState<SourceBreakdown[]>([]);
-    const [loading, setLoading] = useState(Boolean(userId));
+    const [loading, setLoading] = useState(Boolean(routeParam));
     const [error, setError] = useState<string | null>(null);
     const [fetchKey, setFetchKey] = useState(0);
     const refetch = useCallback(() => {
@@ -53,6 +53,7 @@ export function useUserFinance(routeParam: string | undefined, options?: UseUser
     }, [refetch]);
     useEffect(() => {
         if (!userId) {
+            setLoading(resolving);
             return;
         }
         const activeUserId = userId;
@@ -102,7 +103,7 @@ export function useUserFinance(routeParam: string | undefined, options?: UseUser
         incomePieData,
         expensePieData,
         summary,
-        loading: userId ? loading : false,
+        loading: Boolean(routeParam && (resolving || (userId && loading))),
         error: userId ? error : null,
         refetch,
     }), [
@@ -113,6 +114,7 @@ export function useUserFinance(routeParam: string | undefined, options?: UseUser
         expensePieData,
         summary,
         userId,
+        resolving,
         loading,
         error,
         refetch,

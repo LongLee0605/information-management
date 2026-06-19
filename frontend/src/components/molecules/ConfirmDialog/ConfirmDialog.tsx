@@ -1,4 +1,5 @@
 import { Button } from '@/components/atoms/Button';
+
 interface ConfirmDialogProps {
     open: boolean;
     title: string;
@@ -7,9 +8,11 @@ interface ConfirmDialogProps {
     cancelLabel?: string;
     loading?: boolean;
     onConfirm: () => void;
-    onCancel: () => void;
+    onCancel?: () => void;
+    singleAction?: boolean;
 }
-export function ConfirmDialog({ open, title, message, confirmLabel = 'Xóa', cancelLabel = 'Hủy', loading = false, onConfirm, onCancel, }: ConfirmDialogProps) {
+
+export function ConfirmDialog({ open, title, message, confirmLabel = 'Xóa', cancelLabel = 'Hủy', loading = false, onConfirm, onCancel, singleAction = false, }: ConfirmDialogProps) {
     if (!open) {
         return null;
     }
@@ -21,9 +24,11 @@ export function ConfirmDialog({ open, title, message, confirmLabel = 'Xóa', can
         <p className="mt-2 text-sm text-foreground-soft">{message}</p>
 
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="secondary" type="button" onClick={onCancel} disabled={loading}>
-            {cancelLabel}
-          </Button>
+          {!singleAction && onCancel && (
+            <Button variant="secondary" type="button" onClick={onCancel} disabled={loading}>
+              {cancelLabel}
+            </Button>
+          )}
           <Button variant="primary" type="button" onClick={onConfirm} disabled={loading}>
             {loading ? 'Đang xử lý...' : confirmLabel}
           </Button>

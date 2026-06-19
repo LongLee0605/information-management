@@ -1,5 +1,9 @@
 import { getApiCifFromUserId, getApiUserIdFromCif } from '@/utils/apiAccountCache';
+
 const API_USER_ID_PATTERN = /^\d+$/;
+/** MaKhachHang nội bộ — CIF mẫu là 8 chữ số (vd. 26410052) */
+const MAX_INTERNAL_CUSTOMER_ID = 9999;
+
 export function resolveUserIdFromRouteParam(routeParam: string | undefined): string | undefined {
     if (!routeParam) {
         return undefined;
@@ -10,7 +14,10 @@ export function resolveUserIdFromRouteParam(routeParam: string | undefined): str
         return byApiCif;
     }
     if (API_USER_ID_PATTERN.test(trimmed)) {
-        return trimmed;
+        const numericId = Number(trimmed);
+        if (numericId > 0 && numericId <= MAX_INTERNAL_CUSTOMER_ID) {
+            return trimmed;
+        }
     }
     return undefined;
 }

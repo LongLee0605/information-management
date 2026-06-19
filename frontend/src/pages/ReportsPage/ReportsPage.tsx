@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useCanonicalUserRoute, useUser, useUserFinance } from '@/hooks';
+import { useCanonicalUserRoute, useRedirectIfUserRequired, useUser, useUserFinance } from '@/hooks';
 import { useSelectedUserContext } from '@/context';
 import { LineChartPanel } from '@/components/organisms/LineChartPanel';
 import { PieChartPanel } from '@/components/organisms/PieChartPanel';
@@ -28,6 +28,7 @@ export default function ReportsPage() {
     const activeTab: ReportTab = isValidReportTab(tabParam) ? tabParam : 'charts';
     useCanonicalUserRoute();
     const { user, userId, loading: userLoading, error: userError, notFound, refetch } = useUser(id);
+    useRedirectIfUserRequired(notFound, userLoading);
     const dateRange = useMemo(() => ({ fromDate, toDate }), [fromDate, toDate]);
     const { monthly, breakdown, loading: financeLoading, error: financeError, refetch: refetchFinance, } = useUserFinance(id, { dateRange });
     const filteredMonthly = useMemo(() => filterMonthlyByDateRange(monthly, fromDate, toDate), [monthly, fromDate, toDate]);
@@ -48,7 +49,7 @@ export default function ReportsPage() {
     const handleTabChange = useCallback((tab: ReportTab) => {
         setSearchParams(tab === 'charts' ? {} : { tab });
     }, [setSearchParams]);
-    return (<UserPageShell user={user} loading={userLoading || financeLoading} notFound={notFound} error={userError ?? financeError} title="Tổng Quan Thu Chi" subtitle={user
+    return (<UserPageShell user={user} loading={userLoading || financeLoading} notFound={false} error={userError ?? financeError} title="Tổng Quan Thu Chi" subtitle={user
             ? `Nguồn thu chi riêng · ${user.fullName} · không gộp với khách hàng khác`
             : undefined} summary={filteredSummary} summaryPeriodLabel={periodLabel} beforeSummary={user ? (<ReportDateFilter key={`${fromDate}-${toDate}`} citizenId={formatCitizenId(user.citizenId)} fromDate={fromDate} toDate={toDate} onApply={handleApplyDateFilter}/>) : undefined} onRetry={() => {
             refetch();

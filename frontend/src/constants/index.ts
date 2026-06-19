@@ -57,5 +57,6 @@ export const PIE_COLORS = [
 ] as const;
 export { DEFAULT_PAGE_SIZE } from './pagination';
 export { APP_DATE_RANGE, APP_YEARS, DEMO_DATE_RANGE, DEMO_YEAR, clampAppDate, clampAppDateRange, clampDemoDate, clampDemoDateRange, distributeAppDates, distributeDemoDates, formatAppDateLabel, formatDemoDateLabel, getDemoToday, getEffectiveAppDateRange, getTodayIso, isAppYearDate, isDateInRange, isDateOnOrBeforeToday, isDemoYearDate, } from '@/utils/demoDate';
+export const CUSTOMER_SELECTION_NOTICE = 'select-customer' as const;
 export const APP_NAME = 'User Finance Manager';
 export const APP_SUBTITLE = 'Admin Dashboard';

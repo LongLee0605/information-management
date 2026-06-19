@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Avatar } from '@/components/atoms/Avatar';
 import { GenderBadge } from '@/components/atoms/GenderBadge';
 import { Button } from '@/components/atoms/Button';
@@ -12,7 +12,7 @@ import { AddCustomerModal } from '@/components/organisms/AddCustomerModal';
 import { useSelectedUserContext } from '@/context';
 import { useUsers } from '@/hooks';
 import { deleteUser } from '@/services/userService';
-import { userAccountPath } from '@/constants';
+import { userAccountPath, CUSTOMER_SELECTION_NOTICE } from '@/constants';
 import type { User } from '@/types';
 import { EMPTY_CUSTOMER_FILTER, filterCustomers, formatBirthDate, formatCitizenId, getCifFromUserId, } from '@/utils';
 import type { CustomerFilterValues } from '@/utils';
@@ -21,6 +21,7 @@ function buildFilterResetKey(filters: CustomerFilterValues): string {
 }
 export default function HomePage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { setContextUserId } = useSelectedUserContext();
     const { users, loading, error, refetch } = useUsers();
     const [draftFilters, setDraftFilters] = useState<CustomerFilterValues>(EMPTY_CUSTOMER_FILTER);
@@ -30,6 +31,12 @@ export default function HomePage() {
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const showSelectCustomerNotice = searchParams.get('notice') === CUSTOMER_SELECTION_NOTICE;
+    const dismissSelectCustomerNotice = () => {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('notice');
+        setSearchParams(nextParams, { replace: true });
+    };
     useEffect(() => {
         setContextUserId(null);
     }, [setContextUserId]);
@@ -130,6 +137,15 @@ export default function HomePage() {
       {!loading && !error && (<DataTable columns={columns} data={filteredUsers} getRowKey={(user) => user.id} onRowClick={(user) => navigate(userAccountPath(user.id))} emptyMessage="Không có khách hàng phù hợp." paginationResetKey={filterResetKey} itemLabel="khách hàng"/>)}
 
       <AddCustomerModal open={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={refetch}/>
+
+      <ConfirmDialog
+        open={showSelectCustomerNotice}
+        title="Chọn khách hàng"
+        message="Vui lòng chọn 1 khách hàng để dùng tính năng hồ sơ và tổng quan."
+        confirmLabel="Đã hiểu"
+        singleAction
+        onConfirm={dismissSelectCustomerNotice}
+      />
 
       <ConfirmDialog open={Boolean(userToDelete)} title="Xóa khách hàng" message={userToDelete
             ? `Bạn có chắc muốn xóa khách hàng ${userToDelete.fullName} (CIF ${getCifFromUserId(userToDelete.id)})? Tất cả tài khoản liên quan cũng sẽ bị ẩn.`

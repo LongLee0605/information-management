@@ -1,6 +1,7 @@
 import api, { API_PATHS } from '@/lib/api';
 import type { CreateUserInput, CreateUserResult, Gender, UpdateUserInput, User } from '@/types';
-import { getApiCifFromUserId } from '@/utils/apiAccountCache';
+import { getApiCifFromUserId, getApiUserIdFromCif } from '@/utils/apiAccountCache';
+import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
 import { notifyDataChange } from '@/utils/dataChangeBus';
 import { warmApiAccountCache } from '@/services/accountService';
 interface ApiCustomer {
@@ -17,6 +18,9 @@ interface ApiCustomer {
     HocVan: string | null;
     ThuNhapTBThang: number | null;
     CIF?: string | null;
+}
+interface ApiAccountLookup {
+    MaKhachHang: number;
 }
 function mapUser(row: ApiCustomer): User {
     return {
@@ -50,6 +54,36 @@ export async function getUserById(id: string): Promise<User | null> {
     catch {
         return null;
     }
+}
+export async function resolveCustomerIdFromRouteParam(routeParam: string): Promise<string | null> {
+    const trimmed = routeParam.trim();
+    if (!trimmed) {
+        return null;
+    }
+    await warmApiAccountCache();
+    const fromCache = getApiUserIdFromCif(trimmed);
+    if (fromCache) {
+        return fromCache;
+    }
+    const syncId = resolveUserIdFromRouteParam(trimmed);
+    if (syncId) {
+        const user = await getUserById(syncId);
+        if (user) {
+            return syncId;
+        }
+    }
+    try {
+        const { data } = await api.get<ApiAccountLookup[]>(API_PATHS.accounts, {
+            params: { cif: trimmed, pageSize: 1 },
+        });
+        if (data.length) {
+            return String(data[0].MaKhachHang);
+        }
+    }
+    catch {
+        return null;
+    }
+    return null;
 }
 export async function createUser(input: CreateUserInput): Promise<CreateUserResult> {
     const { data } = await api.post<ApiCustomer>(API_PATHS.customers, {

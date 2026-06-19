@@ -6,6 +6,8 @@ export { useTransactions } from './useTransactions';
 export { useAllTransactions } from './useAllTransactions';
 export { useActiveUserId } from './useActiveUserId';
 export { useCanonicalUserRoute } from './useCanonicalUserRoute';
+export { useRouteUserId } from './useRouteUserId';
+export { useRedirectIfUserRequired } from './useRedirectIfUserRequired';
 export { useCustomerAccounts } from './useCustomerAccounts';
 export { useAllCustomerAccounts } from './useAllCustomerAccounts';
 export { useDebouncedValue } from './useDebouncedValue';
