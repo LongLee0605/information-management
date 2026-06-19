@@ -1,54 +1,136 @@
 import api, { API_PATHS } from '@/lib/api';
-import type { MoneyFlowFilterParams, MoneyFlowNode, MoneyFlowSearchResult, MoneyFlowTrace, } from '@/types/moneyFlow';
+import type { MoneyFlowFilterParams, MoneyFlowLevel, MoneyFlowNode, MoneyFlowSearchResult, MoneyFlowTrace, } from '@/types/moneyFlow';
+import { getEffectiveAppDateRange } from '@/constants';
 import { getApiCifFromUserId } from '@/utils/apiAccountCache';
+import { formatMoneyFlowPeriodLabel } from '@/utils/moneyFlowHelpers';
+
 interface ApiMoneyFlowRow {
-    HuongDongTien: 'outbound' | 'inbound';
-    MaGiaoDich: number;
-    NgayGiaoDich: string;
-    SoTien: number;
+    CapDo: number;
+    MaTaiKhoan: number;
+    MaTaiKhoanNguon: number | null;
+    MaKhachHang: number;
+    CIF: string;
+    HoTen: string;
+    KhachHangNguon?: string;
+    SoTaiKhoan: string;
+    TaiKhoanNguon?: string;
+    NganHang: string;
+    MaGiaoDich: number | null;
+    SoTien: number | null;
+    NgayGiaoDich: string | null;
+    NgayTu: string | null;
+    NgayDen: string | null;
     MoTa: string | null;
     DanhMuc: string | null;
     PhuongThucThanhToan: string | null;
-    TaiKhoanNguon: string;
-    KhachHangNguon: string;
-    MaKhachHang: number;
+    HuongDongTien: 'root' | 'outbound' | 'inbound';
+    SoGiaoDich: number | null;
 }
-function buildFlowTree(rows: ApiMoneyFlowRow[], rootUserId: string, rootAccountNumber: string, rootFullName: string): MoneyFlowNode | null {
-    if (!rows.length)
-        return null;
-    const dates = rows.map((r) => r.NgayGiaoDich.split('T')[0]).sort();
-    const cif = getApiCifFromUserId(rootUserId) ?? rootAccountNumber;
+
+const LEVEL_BADGE: Record<number, string> = {
+    0: 'bg-orange-500 text-white',
+    1: 'bg-blue-500 text-white',
+    2: 'bg-violet-500 text-white',
+    3: 'bg-amber-500 text-white',
+};
+
+function resolveBankBadge(bankName: string, level: number): string {
+    const normalized = bankName.toLowerCase();
+    if (normalized.includes('ocb')) return 'bg-orange-500 text-white';
+    if (normalized.includes('tpbank')) return 'bg-red-600 text-white';
+    if (normalized.includes('vietcombank')) return 'bg-green-700 text-white';
+    if (normalized.includes('bidv')) return 'bg-teal-700 text-white';
+    if (normalized.includes('vietin')) return 'bg-blue-800 text-white';
+    if (normalized.includes('mb')) return 'bg-blue-600 text-white';
+    if (normalized.includes('vpbank')) return 'bg-green-600 text-white';
+    if (normalized.includes('acb')) return 'bg-indigo-600 text-white';
+    if (normalized.includes('sacombank')) return 'bg-rose-600 text-white';
+    if (normalized.includes('techcombank')) return 'bg-red-700 text-white';
+    return LEVEL_BADGE[level] ?? 'bg-slate-500 text-white';
+}
+
+function normalizeDate(value: string | null | undefined): string {
+    if (!value) return '';
+    return value.split('T')[0];
+}
+
+function mapRowToNode(row: ApiMoneyFlowRow): MoneyFlowNode {
+    const level = Math.min(3, Math.max(0, row.CapDo)) as MoneyFlowLevel;
+    const dateFrom = normalizeDate(row.NgayTu ?? row.NgayGiaoDich);
+    const dateTo = normalizeDate(row.NgayDen ?? row.NgayGiaoDich);
+    const fullName = row.HoTen ?? row.KhachHangNguon ?? '';
+    const accountNumber = row.SoTaiKhoan ?? row.TaiKhoanNguon ?? '';
+
     return {
-        id: `root-${rootUserId}`,
-        level: 0,
-        userId: rootUserId,
-        cif,
-        accountNumber: rootAccountNumber,
-        fullName: rootFullName,
-        bank: '',
-        bankBadgeClass: 'bg-orange-500 text-white',
-        amount: rows.reduce((sum, r) => sum + r.SoTien, 0),
-        transactionCount: rows.length,
-        dateFrom: dates[0] ?? '',
-        dateTo: dates[dates.length - 1] ?? '',
-        children: rows.map((row, idx): MoneyFlowNode => ({
-            id: `flow-${row.MaGiaoDich}-${row.HuongDongTien}-${idx}`,
-            level: 1,
-            userId: String(row.MaKhachHang),
-            cif: row.TaiKhoanNguon,
-            accountNumber: row.TaiKhoanNguon,
-            fullName: row.KhachHangNguon,
-            bank: '',
-            bankBadgeClass: row.HuongDongTien === 'outbound' ? 'bg-blue-500 text-white' : 'bg-emerald-500 text-white',
-            amount: row.SoTien,
-            transactionCount: 1,
-            dateFrom: row.NgayGiaoDich.split('T')[0],
-            dateTo: row.NgayGiaoDich.split('T')[0],
-        })),
+        id: level === 0
+            ? `root-${row.MaKhachHang}`
+            : `flow-${row.MaGiaoDich ?? `${row.MaKhachHang}-${level}`}`,
+        level,
+        userId: String(row.MaKhachHang),
+        cif: row.CIF,
+        accountNumber,
+        fullName,
+        bank: row.NganHang ?? '',
+        bankBadgeClass: resolveBankBadge(row.NganHang ?? '', level),
+        amount: row.SoTien ?? undefined,
+        transactionCount: row.SoGiaoDich ?? (level === 0 ? undefined : 1),
+        periodLabel: dateFrom && dateTo ? formatMoneyFlowPeriodLabel(dateFrom, dateTo) : undefined,
+        dateFrom,
+        dateTo,
     };
 }
+
+function buildFlowTree(rows: ApiMoneyFlowRow[], rootUserId: string): MoneyFlowNode | null {
+    if (!rows.length) return null;
+
+    const rootRow = rows.find((row) => row.CapDo === 0) ?? rows[0];
+    const root = mapRowToNode(rootRow);
+
+    if (String(rootRow.MaKhachHang) !== rootUserId) {
+        root.userId = rootUserId;
+        root.cif = getApiCifFromUserId(rootUserId) ?? root.cif;
+    }
+
+    const nodesByAccount = new Map<number, MoneyFlowNode>();
+    nodesByAccount.set(rootRow.MaTaiKhoan, root);
+
+    const hops = [...rows]
+        .filter((row) => row.CapDo > 0)
+        .sort((a, b) => a.CapDo - b.CapDo || (a.MaTaiKhoanNguon ?? 0) - (b.MaTaiKhoanNguon ?? 0));
+
+    for (const hop of hops) {
+        const node = mapRowToNode(hop);
+        const parentAccountId = hop.MaTaiKhoanNguon ?? rootRow.MaTaiKhoan;
+        const parent = nodesByAccount.get(parentAccountId) ?? root;
+
+        parent.children = parent.children ?? [];
+        parent.children.push(node);
+
+        if (!nodesByAccount.has(hop.MaTaiKhoan)) {
+            nodesByAccount.set(hop.MaTaiKhoan, node);
+        }
+    }
+
+    if (hops.length) {
+        root.amount = hops.reduce((sum, row) => sum + (row.SoTien ?? 0), 0);
+        root.transactionCount = hops.length;
+        const dates = hops
+            .map((row) => normalizeDate(row.NgayTu ?? row.NgayGiaoDich))
+            .filter(Boolean)
+            .sort();
+        if (dates.length) {
+            root.dateFrom = dates[0];
+            root.dateTo = dates[dates.length - 1];
+            root.periodLabel = formatMoneyFlowPeriodLabel(root.dateFrom, root.dateTo);
+        }
+    }
+
+    return root;
+}
+
 function buildMoneyFlowParams(filters: Partial<MoneyFlowFilterParams> & {
     customerId?: string;
+    maxLevel?: number;
 }) {
     return {
         ...(filters.customerId && { customerId: filters.customerId }),
@@ -56,46 +138,68 @@ function buildMoneyFlowParams(filters: Partial<MoneyFlowFilterParams> & {
         ...(filters.accountNumber?.trim() && { accountNumber: filters.accountNumber.trim() }),
         ...(filters.fromDate && { fromDate: filters.fromDate }),
         ...(filters.toDate && { toDate: filters.toDate }),
+        maxLevel: filters.maxLevel ?? 3,
     };
 }
+
+function buildStats(rows: ApiMoneyFlowRow[]): MoneyFlowSearchResult['stats'] {
+    const hops = rows.filter((row) => row.CapDo > 0);
+    const accounts = new Set(rows.map((row) => row.SoTaiKhoan));
+    const maxLevel = rows.reduce((max, row) => Math.max(max, row.CapDo), 0);
+
+    return {
+        relatedAccounts: accounts.size,
+        totalTransactions: hops.length,
+        totalFlowAmount: hops.reduce((sum, row) => sum + (row.SoTien ?? 0), 0),
+        traceLevels: maxLevel + 1,
+    };
+}
+
 export async function getMoneyFlowTrace(userId: string): Promise<MoneyFlowTrace | null> {
+    const { fromDate, toDate } = getEffectiveAppDateRange();
     const { data } = await api.get<ApiMoneyFlowRow[]>(API_PATHS.reports.moneyFlow, {
-        params: { customerId: userId },
+        params: {
+            customerId: userId,
+            fromDate,
+            toDate,
+            maxLevel: 3,
+        },
     });
-    if (!data.length)
-        return null;
-    const rootAccount = data[0]?.TaiKhoanNguon ?? '';
-    const rootName = data[0]?.KhachHangNguon ?? '';
-    const root = buildFlowTree(data, userId, rootAccount, rootName);
-    if (!root)
-        return null;
+
+    if (!data.length) return null;
+
+    const root = buildFlowTree(data, userId);
+    if (!root) return null;
+
     return { rootUserId: userId, root };
 }
+
 export async function searchMoneyFlow(filters: MoneyFlowFilterParams): Promise<MoneyFlowSearchResult> {
     const empty = { relatedAccounts: 0, totalTransactions: 0, totalFlowAmount: 0, traceLevels: 0 };
+
     if (!filters.cif.trim() && !filters.accountNumber.trim()) {
         return { trace: null, stats: empty, error: 'Vui lòng nhập Số CIF hoặc Số tài khoản.' };
     }
-    const { data } = await api.get<ApiMoneyFlowRow[]>(API_PATHS.reports.moneyFlow, { params: buildMoneyFlowParams(filters) });
+
+    const { data } = await api.get<ApiMoneyFlowRow[]>(API_PATHS.reports.moneyFlow, {
+        params: buildMoneyFlowParams(filters),
+    });
+
     if (!data.length) {
         return { trace: null, stats: empty, error: 'Không có dữ liệu truy vết cho tài khoản này.' };
     }
-    const rootUserId = String(data[0].MaKhachHang);
-    const rootAccount = filters.accountNumber.trim() || data[0].TaiKhoanNguon;
-    const rootName = data[0].KhachHangNguon;
-    const root = buildFlowTree(data, rootUserId, rootAccount, rootName);
+
+    const rootRow = data.find((row) => row.CapDo === 0) ?? data[0];
+    const rootUserId = String(rootRow.MaKhachHang);
+    const root = buildFlowTree(data, rootUserId);
+
     if (!root) {
         return { trace: null, stats: empty, error: 'Không tìm thấy tài khoản.' };
     }
-    const uniqueAccounts = new Set(data.map((r) => r.TaiKhoanNguon));
+
     return {
         trace: { rootUserId, root },
-        stats: {
-            relatedAccounts: uniqueAccounts.size,
-            totalTransactions: data.length,
-            totalFlowAmount: data.reduce((sum, r) => sum + r.SoTien, 0),
-            traceLevels: 2,
-        },
+        stats: buildStats(data),
         error: null,
     };
 }
