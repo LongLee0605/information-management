@@ -7,7 +7,6 @@
 USE QLTT;
 GO
 
--- Trigger 1: AFTER UPDATE - Đóng băng số dư khi chuyển sang 'inactive'
 IF OBJECT_ID('dbo.TR_TaiKhoan_DongBangSoDu', 'TR') IS NOT NULL
     DROP TRIGGER dbo.TR_TaiKhoan_DongBangSoDu;
 GO
@@ -19,12 +18,9 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Skip sớm nếu cột TrangThai không bị tác động
     IF NOT UPDATE(TrangThai)
         RETURN;
 
-    -- SET-BASED: xử lý tất cả dòng vừa chuyển sang 'inactive' trong một câu lệnh
-    -- Guard d.TrangThai <> 'inactive': chỉ xử lý lần chuyển thật sự, không re-freeze
     UPDATE tk
     SET tk.SoDuDongBang = i.SoDuHienTai,
         tk.SoDuHienTai  = 0
@@ -36,7 +32,6 @@ BEGIN
 END;
 GO
 
--- Trigger 2: AFTER INSERT - Validate tài khoản mới (chặn số dư âm)
 IF OBJECT_ID('dbo.TR_TaiKhoan_ValidateInsert', 'TR') IS NOT NULL
     DROP TRIGGER dbo.TR_TaiKhoan_ValidateInsert;
 GO

@@ -6,6 +6,7 @@ export interface MoneyFlowFilterValues {
     accountNumber: string;
     fromDate: string;
     toDate: string;
+    customerId?: string;
 }
 interface MoneyFlowFilterProps {
     defaultValues: MoneyFlowFilterValues;

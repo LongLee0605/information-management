@@ -26,13 +26,14 @@ SELECT
     kh.TinhTrangHonNhan,
     kh.HocVan,
     kh.ThuNhapTBThang,
-    tk.SoTaiKhoan    AS SoTaiKhoanChinh,
-    tk.NganHang      AS NganHangChinh,
-    tk.SoDuHienTai   AS SoDuTaiKhoanChinh,
-    tk.TrangThai     AS TrangThaiTaiKhoanChinh
+    tk.CIF              AS CIFChinh,
+    tk.SoTaiKhoan       AS SoTaiKhoanChinh,
+    tk.NganHang         AS NganHangChinh,
+    tk.SoDuHienTai      AS SoDuTaiKhoanChinh,
+    tk.TrangThai        AS TrangThaiTaiKhoanChinh
 FROM dbo.KhachHang kh
 LEFT JOIN dbo.TaiKhoan tk
     ON tk.MaKhachHang = kh.MaKhachHang
-    AND tk.LaTaiKhoanChinh = 1
-    AND tk.TrangThai = 'active';
+   AND tk.LaTaiKhoanChinh = 1
+   AND tk.TrangThai = 'active';
 GO

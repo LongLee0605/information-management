@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getUserFinance } from '@/services';
+import { getUserFinance, type FinanceDateRange } from '@/services/financeService';
 import type { MonthlyFinance, SourceBreakdown } from '@/types';
 import { calculateFinanceSummary, transformBreakdownToPieChart, transformMonthlyToLineChart, } from '@/utils/chartTransformers';
 import { subscribeDataChange } from '@/utils/dataChangeBus';
+import { getEffectiveAppDateRange } from '@/utils/demoDate';
 import { PIE_COLORS } from '@/constants';
 import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
+
+interface UseUserFinanceOptions {
+    dateRange?: FinanceDateRange;
+}
+
 interface UseUserFinanceResult {
     monthly: MonthlyFinance[];
     breakdown: SourceBreakdown[];
@@ -17,8 +23,18 @@ interface UseUserFinanceResult {
     refetch: () => void;
 }
 const EMPTY_SUMMARY = calculateFinanceSummary([]);
-export function useUserFinance(routeParam: string | undefined): UseUserFinanceResult {
+
+function resolveDateRange(options?: UseUserFinanceOptions): FinanceDateRange {
+    if (options?.dateRange) {
+        return options.dateRange;
+    }
+    const range = getEffectiveAppDateRange();
+    return { fromDate: range.fromDate, toDate: range.toDate };
+}
+
+export function useUserFinance(routeParam: string | undefined, options?: UseUserFinanceOptions): UseUserFinanceResult {
     const userId = useMemo(() => resolveUserIdFromRouteParam(routeParam), [routeParam]);
+    const dateRange = useMemo(() => resolveDateRange(options), [options?.dateRange?.fromDate, options?.dateRange?.toDate]);
     const [monthly, setMonthly] = useState<MonthlyFinance[]>([]);
     const [breakdown, setBreakdown] = useState<SourceBreakdown[]>([]);
     const [loading, setLoading] = useState(Boolean(userId));
@@ -28,22 +44,28 @@ export function useUserFinance(routeParam: string | undefined): UseUserFinanceRe
         setFetchKey((key) => key + 1);
     }, []);
     useEffect(() => {
-        return subscribeDataChange('transactions', refetch);
+        const unsubscribeTx = subscribeDataChange('transactions', refetch);
+        const unsubscribeAccounts = subscribeDataChange('accounts', refetch);
+        return () => {
+            unsubscribeTx();
+            unsubscribeAccounts();
+        };
     }, [refetch]);
     useEffect(() => {
         if (!userId) {
             return;
         }
         const activeUserId = userId;
+        const activeRange = dateRange;
         let cancelled = false;
         async function fetchFinance() {
             setLoading(true);
             setError(null);
             try {
-                const data = await getUserFinance(activeUserId);
+                const data = await getUserFinance(activeUserId, activeRange);
                 if (!cancelled) {
-                    setMonthly(data?.monthly ?? []);
-                    setBreakdown(data?.breakdown ?? []);
+                    setMonthly(data.monthly);
+                    setBreakdown(data.breakdown);
                 }
             }
             catch {
@@ -61,7 +83,7 @@ export function useUserFinance(routeParam: string | undefined): UseUserFinanceRe
         return () => {
             cancelled = true;
         };
-    }, [userId, fetchKey]);
+    }, [userId, fetchKey, dateRange.fromDate, dateRange.toDate]);
     const activeMonthly = useMemo(() => (userId ? monthly : []), [userId, monthly]);
     const activeBreakdown = useMemo(() => (userId ? breakdown : []), [userId, breakdown]);
     const lineChartData = useMemo(() => transformMonthlyToLineChart(activeMonthly), [activeMonthly]);

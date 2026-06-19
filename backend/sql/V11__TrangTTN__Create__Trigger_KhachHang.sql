@@ -7,7 +7,6 @@
 USE QLTT;
 GO
 
--- Trigger 1: Validate dữ liệu khi INSERT khách hàng mới
 IF OBJECT_ID('dbo.TR_KhachHang_ValidateInsert', 'TR') IS NOT NULL
     DROP TRIGGER dbo.TR_KhachHang_ValidateInsert;
 GO
@@ -19,7 +18,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Chặn CCCD không đúng 12 chữ số
     IF EXISTS (
         SELECT 1 FROM inserted
         WHERE LEN(CCCD) <> 12 OR CCCD NOT LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
@@ -30,7 +28,6 @@ BEGIN
         RETURN;
     END;
 
-    -- Chặn ngày sinh trong tương lai
     IF EXISTS (
         SELECT 1 FROM inserted
         WHERE NgaySinh >= CAST(GETDATE() AS DATE)
@@ -43,7 +40,6 @@ BEGIN
 END;
 GO
 
--- Trigger 2: Validate khi UPDATE khách hàng
 IF OBJECT_ID('dbo.TR_KhachHang_ValidateUpdate', 'TR') IS NOT NULL
     DROP TRIGGER dbo.TR_KhachHang_ValidateUpdate;
 GO

@@ -8,7 +8,7 @@ import { TabList } from '@/components/molecules/TabList';
 import { ReportDateFilter } from '@/components/molecules/ReportDateFilter';
 import { UserPageShell } from '@/components/templates/UserPageShell';
 import { getEffectiveAppDateRange, REPORT_TABS, PIE_COLORS, type ReportTab } from '@/constants';
-import { calculateFinanceSummary, filterBreakdownByDateRange, filterMonthlyByDateRange, formatDateRangeLabel, transformBreakdownToPieChart, transformMonthlyToLineChart, } from '@/utils/chartTransformers';
+import { calculateFinanceSummary, filterMonthlyByDateRange, formatDateRangeLabel, transformBreakdownToPieChart, transformMonthlyToLineChart, } from '@/utils/chartTransformers';
 import { formatCitizenId } from '@/utils';
 const DEFAULT_RANGE = getEffectiveAppDateRange();
 const DEFAULT_FROM = DEFAULT_RANGE.fromDate;
@@ -28,12 +28,12 @@ export default function ReportsPage() {
     const activeTab: ReportTab = isValidReportTab(tabParam) ? tabParam : 'charts';
     useCanonicalUserRoute();
     const { user, userId, loading: userLoading, error: userError, notFound, refetch } = useUser(id);
-    const { monthly, breakdown, loading: financeLoading, error: financeError, refetch: refetchFinance, } = useUserFinance(id);
+    const dateRange = useMemo(() => ({ fromDate, toDate }), [fromDate, toDate]);
+    const { monthly, breakdown, loading: financeLoading, error: financeError, refetch: refetchFinance, } = useUserFinance(id, { dateRange });
     const filteredMonthly = useMemo(() => filterMonthlyByDateRange(monthly, fromDate, toDate), [monthly, fromDate, toDate]);
-    const filteredBreakdown = useMemo(() => filterBreakdownByDateRange(breakdown, monthly, fromDate, toDate), [breakdown, monthly, fromDate, toDate]);
     const lineChartData = useMemo(() => transformMonthlyToLineChart(filteredMonthly), [filteredMonthly]);
-    const incomePieData = useMemo(() => transformBreakdownToPieChart(filteredBreakdown, 'income', PIE_COLORS), [filteredBreakdown]);
-    const expensePieData = useMemo(() => transformBreakdownToPieChart(filteredBreakdown, 'expense', PIE_COLORS), [filteredBreakdown]);
+    const incomePieData = useMemo(() => transformBreakdownToPieChart(breakdown, 'income', PIE_COLORS), [breakdown]);
+    const expensePieData = useMemo(() => transformBreakdownToPieChart(breakdown, 'expense', PIE_COLORS), [breakdown]);
     const filteredSummary = useMemo(() => calculateFinanceSummary(filteredMonthly), [filteredMonthly]);
     const periodLabel = formatDateRangeLabel(fromDate, toDate);
     useEffect(() => {

@@ -25,6 +25,7 @@ export interface MoneyFlowFilterParams {
     accountNumber: string;
     fromDate: string;
     toDate: string;
+    customerId?: string;
 }
 export interface MoneyFlowStats {
     relatedAccounts: number;

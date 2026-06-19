@@ -40,26 +40,26 @@
 ---
 
 ### V17__AnhTPQ__Upsert__SP_KhachHang_ThemCapNhat
-- **SP:** `dbo.sp_KhachHang_ThemCapNhat`
+- **SP:** `dbo.SP_KhachHang_ThemCapNhat`
 - **Input:**
   | Tham số | Kiểu | Bắt buộc | Mô tả |
   |---|---|---|---|
-  | @KhachHangID | INT | Không | 0/NULL = thêm mới, >0 = cập nhật |
+  | @MaKhachHang | INT | Không | NULL/0 = thêm mới, >0 = cập nhật |
   | @CCCD | VARCHAR(12) | Có | |
   | @HoTen | NVARCHAR(100) | Có | |
-  | @NamSinh | SMALLINT | Có | |
-  | @GioiTinh | NVARCHAR(5) | Có | 'Nam'/'Nữ' |
-  | @DiaChi | NVARCHAR(300) | Không | |
-  | @SoDienThoai | VARCHAR(15) | Không | |
-- **Validate trước khi xử lý:**
-  1. `@CCCD` không rỗng, đúng 12 ký số
+  | @NgaySinh | DATE | Có | (schema V5 — thay cho @NamSinh) |
+  | @GioiTinh | VARCHAR(6) | Có | `male` / `female` |
+  | @DienThoai | VARCHAR(15) | Không | |
+  | @Email, @DiaChi, @NoiLamViec, … | | Không | |
+- **Validate:**
+  1. `@CCCD` đúng 12 chữ số
   2. `@HoTen` không rỗng
-  3. `@NamSinh` trong khoảng 1900–2010
-  4. `@GioiTinh` IN ('Nam','Nữ')
-  5. Kiểm tra CCCD trùng (bỏ qua chính record nếu UPDATE)
-  6. Nếu thêm mới: tự sinh CIF theo format 264XXXXXX
-- **Output:** `{ ID, Message }` — CIF mới nếu INSERT thành công
-- **Lưu ý:** Trigger `trg_AuditLog_KhachHang` tự ghi log
+  3. `YEAR(@NgaySinh)` trong khoảng 1900–2010
+  4. `@GioiTinh` IN (`male`, `female`)
+  5. CCCD trùng (UPDATE bỏ qua chính record)
+  6. INSERT: tự sinh CIF `264XXXXX` + tài khoản thanh toán chính (để V20 mở thêm TK)
+- **Output:** `{ ID, Message, CIF }`
+- **Lưu ý:** Trigger `TR_KhachHang_ValidateInsert` (V11) bổ sung validate
 
 ---
 
@@ -74,6 +74,27 @@
 ---
 
 ## NHÓM TÀI KHOẢN
+
+### V6__LoiLCA__Create__Table_TaiKhoan
+- **Bảng:** `dbo.TaiKhoan`
+- **Cột chính:**
+  | Cột | Kiểu | Mô tả |
+  |---|---|---|
+  | MaTaiKhoan | INT IDENTITY | PK |
+  | MaKhachHang | INT | FK → KhachHang |
+  | CIF | VARCHAR(20) | Mã CIF (cùng KH dùng chung CIF) |
+  | SoTaiKhoan | VARCHAR(20) | Unique toàn hệ thống |
+  | LoaiTaiKhoan | VARCHAR(20) | `payment` / `savings` / `debit` / `overdraft` |
+  | SoDuHienTai | DECIMAL(18,2) | Số dư hiện tại |
+  | SoDuDongBang | DECIMAL(18,2) | Số dư phong tỏa (view V9 alias `SoDuPhongToa`) |
+  | TrangThai | VARCHAR(10) | `active` / `inactive` |
+- **Ràng buộc:** `SoDuHienTai >= 0`, `SoDuDongBang >= 0`; số dư khả dụng = `SoDuHienTai − SoDuDongBang` (khi active)
+- **Index:** MaKhachHang, CIF, (CIF, MaKhachHang)
+- **Lưu ý:** Đóng băng số dư khi inactive do trigger V12 `TR_TaiKhoan_DongBangSoDu`
+
+### V14__LoiLCA__Insert__SampleData_TaiKhoan
+- **Mục đích:** 10 khách hàng mẫu; mỗi KH một CIF `264xxxxx` riêng
+- **Idempotent:** Chỉ INSERT khi chưa có dữ liệu mẫu
 
 ### V19__LongLTD__Get__SP_TaiKhoan_TimKiem
 - **SP:** `dbo.sp_TaiKhoan_TimKiem`
@@ -92,21 +113,21 @@
 ---
 
 ### V20__PhongNLH__Upsert__SP_TaiKhoan_MoTaiKhoan
-- **SP:** `dbo.sp_TaiKhoan_MoTaiKhoan`
+- **SP:** `dbo.SP_TaiKhoan_MoTaiKhoan`
 - **Input:**
   | Tham số | Kiểu | Bắt buộc |
   |---|---|---|
   | @CIF | VARCHAR(20) | Có |
-  | @LoaiTaiKhoan | NVARCHAR(20) | Có |
+  | @LoaiTaiKhoan | NVARCHAR(20) | Có — `payment`/`savings` hoặc `N'Thanh toán'`/`N'Tiết kiệm'` |
 - **Validate:**
-  1. CIF tồn tại và IsActive = 1
-  2. LoaiTaiKhoan IN (N'Thanh toán', N'Tiết kiệm')
+  1. CIF tồn tại trên ít nhất một tài khoản active
+  2. LoaiTaiKhoan IN (`payment`, `savings` hoặc nhãn tiếng Việt tương ứng)
   3. Mỗi khách hàng tối đa 1 tài khoản/loại
 - **Tự sinh số tài khoản:**
   - Tiết kiệm: `00206` + 11 số ngẫu nhiên (check unique)
-  - Thanh toán: lấy SoDienThoai của KhachHang, format `XXXX.XXX.XXX`
-- **Output:** `{ ID: TaiKhoanID, Message, SoTaiKhoan }`
-- **Lưu ý:** Trigger tự ghi audit log
+  - Thanh toán: format `DienThoai` → `XXXX.XXX.XXX`, fallback số ngẫu nhiên
+- **Output:** `{ ID, Message, SoTaiKhoan }`
+- **Lưu ý:** Trigger tự ghi audit log; toggle khóa/mở dùng V21 `SP_TaiKhoan_CapNhatTrangThai`
 
 ---
 
@@ -125,7 +146,7 @@
 
 ### V22__TrangTTN__Get__SP_GiaoDich_TimKiem
 - **SP:** `dbo.sp_GiaoDich_TimKiem`
-- **Sử dụng:** View `dbo.vw_GiaoDich`
+- **Sử dụng:** View `dbo.VW_GiaoDich`
 - **Input:**
   | Tham số | Kiểu |
   |---|---|
@@ -137,39 +158,42 @@
   | @IsGhiNo | BIT | NULL = tất cả |
   | @PageNumber | INT |
   | @PageSize | INT |
-- **Output:** Danh sách từ `vw_GiaoDich` + `TotalRow`
+- **Output:** Danh sách từ `VW_GiaoDich` + `TotalRow`
 
 ---
 
 ### V23__LoiLCA__Upsert__SP_GiaoDich_TaoGiaoDich
-- **SP:** `dbo.sp_GiaoDich_TaoGiaoDich`
+- **SP:** `dbo.SP_GiaoDich_TaoGiaoDich`
+- **Backend:** `POST /api/transactions` — map `accountId` → `@MaTaiKhoan`, `type` → `@LoaiGiaoDich`, `destinationAccountId` → `@MaTaiKhoanDich`
 - **Input:**
-  | Tham số | Kiểu | Bắt buộc |
-  |---|---|---|
-  | @SoTKNguon | VARCHAR(20) | Có |
-  | @SoTKDich | VARCHAR(20) | Có |
-  | @SoTienGD | DECIMAL(18,0) | Có |
-  | @MoTa | NVARCHAR(500) | Không |
-  | @IsGhiNo | BIT | Có |
-  | @HinhThuc | VARCHAR(10) | Có |
+  | Tham số | Kiểu | Bắt buộc | Mô tả |
+  |---|---|---|---|
+  | @MaTaiKhoan | INT | Có | Tài khoản ghi nhận giao dịch |
+  | @LoaiGiaoDich | VARCHAR(10) | Có | `credit` / `debit` |
+  | @SoTien | DECIMAL(18,2) | Có | > 0 |
+  | @MoTa | NVARCHAR(500) | Không | |
+  | @DanhMuc | NVARCHAR(100) | Không | Ví dụ: `Chuyển khoản` |
+  | @PhuongThucThanhToan | NVARCHAR(50) | Không | Ví dụ: `Chuyển khoản`, `NAPAS` |
+  | @MaTaiKhoanDich | INT | Không | Chỉ với `debit` — TK đích (truy vết dòng tiền F1) |
 - **Validate (theo thứ tự):**
-  1. SoTKNguon và SoTKDich tồn tại, `TrangThai = 'active'`
-  2. SoTKNguon ≠ SoTKDich
-  3. SoTienGD > 0
-  4. **Kiểm tra số dư khả dụng:** `SoDuHienTai − SoDuPhongToa >= SoTienGD`
-  5. HinhThuc IN ('NAPAS','Noi bo')
-- **Tự sinh MaGiaoDich:** `FT` + `yyyyMMddHHmmss` + 4 số random
-- **Output:** `{ ID: GiaoDichID, Message, MaGiaoDich }`
-- **Không có UPDATE/DELETE** (giao dịch là bất biến)
+  1. `@LoaiGiaoDich` IN (`credit`, `debit`)
+  2. `@SoTien` > 0
+  3. `@MaTaiKhoan` tồn tại, `TrangThai = 'active'`
+  4. Nếu có `@MaTaiKhoanDich`: chỉ `debit`; TK đích tồn tại, active, khác TK nguồn, **khác MaKhachHang**
+  5. **Debit:** `SoDuHienTai − SoDuDongBang >= @SoTien`
+- **Side-effect:** INSERT `GiaoDich`; cập nhật `SoDuHienTai` (+ credit / − debit)
+- **Output:** `{ MaGiaoDich, NgayGiaoDich, LoaiGiaoDich, SoTien, MaTaiKhoanDich, SoDuSauGiaoDich }`
+- **Không có UPDATE/DELETE** (giao dịch bất biến)
+- **Lưu ý:** Chuyển khoản FE tạo 2 lần gọi — debit (có `MaTaiKhoanDich`) + credit (không có đích)
 
 ---
 
 ## NHÓM BÁO CÁO
 
 ### V24__AnhTPQ__GetReport__SP_BaoCao_TongQuan
-- **SP:** `dbo.sp_BaoCao_TongQuan`
+- **SP:** `dbo.SP_BaoCao_TongQuan`
 - **Input:** `@TuNgay DATETIME`, `@DenNgay DATETIME`, `@CIF VARCHAR(20)` (NULL = toàn hệ thống)
-- **Output (tương thích stat cards React):**
+- **Output (1 row — stat cards):**
   ```json
   {
     "TongGiaoDich": 9,
@@ -179,6 +203,7 @@
     "NoiBoCount": 4
   }
   ```
+  *`TongGhiNo` = debit, `TongGhiCo` = credit; `NoiBoCount` = giao dịch không qua NAPAS*
 
 ---
 
@@ -212,75 +237,42 @@
 
 ---
 
-### V27__PhongNLH__GetReport__SP_TruyVetDongTien
-- **SP:** `dbo.sp_TruyVetDongTien`
-- **Mục đích:** Truy vết đồ thị dòng tiền theo CIF gốc, trả ra cấu trúc cây dùng cho MoneyFlowChart
+### V27__LongLTD__GetReport__SP_MoneyFlowTrace
+- **SP:** `dbo.SP_TruyVetDongTien`
+- **Schema:** thêm `GiaoDich.MaTaiKhoanDich` (FK → TaiKhoan) trong cùng script
+- **Mục đích:** Truy vết đồ thị dòng tiền F0→F3 theo CIF/tài khoản gốc
 - **Input:**
-  | Tham số | Kiểu |
-  |---|---|
-  | @CIFGoc | VARCHAR(20) |
-  | @SoTaiKhoan | VARCHAR(20) | CIF hoặc SoTK, ưu tiên CIF |
-  | @TuNgay | DATETIME |
-  | @DenNgay | DATETIME |
-  | @MaxLevel | INT | DEFAULT 2 |
-- **Kỹ thuật:** Dùng **Recursive CTE** để duyệt cây giao dịch tối đa `@MaxLevel` cấp
-- **Output (JSON — tương thích FlowNode trong MoneyFlowChart.tsx):**
-  ```json
-  [
-    {
-      "id": "root",
-      "cif": "26410060",
-      "name": "Lê Phước Lâm",
-      "account": "0912.345.678",
-      "level": 0,
-      "amount": null,
-      "txCount": null,
-      "children": [
-        {
-          "id": "n_26410064",
-          "cif": "26410064",
-          "name": "Lê Công Anh Lợi",
-          "account": "0987.654.321",
-          "level": 1,
-          "amount": 15000000,
-          "txCount": 1,
-          "period": "T7/25–T11/25",
-          "children": [ ... ]
-        }
-      ]
-    }
-  ]
-  ```
-- **GraphQL Schema (Hot Chocolate / HotChocolate .NET hoặc graphql-dotnet):**
-  ```graphql
-  type FlowNode {
-    id:       String!
-    cif:      String!
-    name:     String!
-    account:  String!
-    bank:     String
-    level:    Int!
-    amount:   Float
-    txCount:  Int
-    period:   String
-    children: [FlowNode!]!
-  }
-
-  type Query {
-    truyVetDongTien(
-      cifGoc:      String
-      soTaiKhoan:  String
-      tuNgay:      String!
-      denNgay:     String!
-      maxLevel:    Int
-    ): FlowNode
-  }
-  ```
-- **Cách kết nối GraphQL → SP:** Resolver gọi `EXEC dbo.sp_TruyVetDongTien` → deserialize JSON → map sang `FlowNode` object → trả về GraphQL response
+  | Tham số | Kiểu | Mô tả |
+  |---|---|---|
+  | @CIFGoc | VARCHAR(20) | CIF tài khoản F0 |
+  | @SoTaiKhoan | VARCHAR(20) | Số TK F0 (hoặc CIF) |
+  | @MaKhachHang | INT | Tùy chọn — lookup theo mã KH |
+  | @MaTaiKhoan | INT | Tùy chọn — lookup theo mã TK |
+  | @TuNgay | DATE | NULL = 12 tháng trước |
+  | @DenNgay | DATE | NULL = hôm nay |
+  | @MaxLevel | INT | DEFAULT 3, tối đa 5 |
+  | @SoTienNguong | DECIMAL(18,2) | NULL = không lọc |
+- **Kỹ thuật:** Recursive CTE; lọc `[TRUYVET] KH{n}-F{level}`; loại chuyển cho chính mình
+- **Output:** Flat rows (CapDo, MaTaiKhoan, MaTaiKhoanNguon, CIF, HoTen, SoTaiKhoan, SoTien, …) — FE build cây nhiều nhánh
 - **Validate:**
-  1. CIFGoc hoặc SoTaiKhoan phải có ít nhất 1
-  2. TuNgay ≤ DenNgay
-  3. MaxLevel trong khoảng 1–5
+  1. CIFGoc / SoTaiKhoan / MaKhachHang / MaTaiKhoan — ít nhất một cách xác định F0
+  2. TuNgay ≤ DenNgay (tự hoán đổi nếu ngược)
+  3. MaxLevel 1–5
+
+---
+
+### V28__LongLTD__Insert__SampleData_Transactions_Extended
+- **Mục đích:** Dữ liệu mẫu mở rộng sau V15
+- **Phần 1 `[TRUYVET]`:** Chuỗi F1–F3 (2–4 người/cấp), tháng 4/2025, có `MaTaiKhoanDich`
+- **Phần 2 `[DEMO-TXN]`:** ~50 giao dịch/KH, rải 2025-01-01 → GETDATE()
+
+---
+
+### V29__LongLTD__Upsert__SP_Account_SyncBalance
+- **SP:** `dbo.SP_TaiKhoan_DongBoSoDu`
+- **Mục đích:** Đồng bộ `SoDuHienTai` sau INSERT mẫu (V15/V28 không qua SP_GiaoDich_TaoGiaoDich)
+- **Công thức:** `SoDuHienTai = SoDuKhoiTao (V14) + SUM(credit) − SUM(debit)`
+- **Chạy:** Tự động `EXEC` cuối script migrate
 
 ---
 
@@ -293,11 +285,11 @@
 | V3  | Create User | LamLP |
 | V4  | Grant Permissions | LamLP |
 | V5  | Table KhachHang + AuditLog | NhanPT |
-| V6  | Table TaiKhoan + AuditLog | LoiLCA |
+| V6  | Table TaiKhoan | LoiLCA |
 | V7  | Table GiaoDich | HuyTND |
-| V8  | View vw_KhachHang | AnhTPQ |
+| V8  | View VW_KhachHang | AnhTPQ |
 | V9  | View vw_TaiKhoan | LongLTD |
-| V10 | View vw_GiaoDich | PhongNLH |
+| V10 | View VW_GiaoDich | PhongNLH |
 | V11 | Trigger KhachHang | TrangTTN |
 | V12 | Trigger TaiKhoan | HuyTND |
 | V13 | Insert KhachHang | NhanPT |
@@ -314,4 +306,7 @@
 | V24 | SP BaoCao TongQuan | AnhTPQ |
 | V25 | SP BaoCao BieuDoTheoThang | VietVH |
 | V26 | SP BaoCao PieChart | LongLTD |
-| V27 | SP TruyVetDongTien + GraphQL schema | PhongNLH |
+| V27 | Alter Transaction + SP MoneyFlowTrace | LongLTD |
+| V28 | Insert Transactions Extended (TRUYVET + DEMO) | LongLTD |
+| V29 | SP Account SyncBalance | LongLTD |
+| V30 | SP MoneyFlowTrace (real transfers + limits) | LongLTD |

@@ -66,6 +66,7 @@ export async function createTransferTransaction(draft: TransferDraft): Promise<T
         description: `${draft.content} — Chuyển đến ${draft.recipientName} (${draft.bankName} ${draft.recipientAccount})`,
         category: 'Chuyển khoản',
         paymentMethod: 'Chuyển khoản',
+        destinationAccountId: recipientAccountId,
     });
     await api.post(API_PATHS.transactions, {
         accountId: recipientAccountId,

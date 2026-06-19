@@ -3,7 +3,29 @@ import { Button } from '@/components/atoms/Button';
 import { SuccessCelebrationBackdrop } from '@/components/molecules/SuccessCelebrationBackdrop';
 import { createUser } from '@/services/userService';
 import type { CreateUserInput, CreateUserResult, Gender } from '@/types';
-import { cn, formatBirthDate, formatCitizenId, formatGender, parseVnDateInput } from '@/utils';
+import { cn, formatBirthDate, formatCitizenId, formatGender } from '@/utils';
+
+const MIN_BIRTH_DATE = '1900-01-01';
+
+function getMaxBirthDate(): string {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().slice(0, 10);
+}
+
+function isIsoBirthDateValid(value: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return false;
+    }
+    if (value < MIN_BIRTH_DATE || value > getMaxBirthDate()) {
+        return false;
+    }
+    const [year, month, day] = value.split('-').map(Number);
+    const parsed = new Date(year, month - 1, day);
+    return parsed.getFullYear() === year
+        && parsed.getMonth() === month - 1
+        && parsed.getDate() === day;
+}
 interface AddCustomerModalProps {
     open: boolean;
     onClose: () => void;
@@ -102,6 +124,7 @@ function CustomerSuccessView({ result, onBack, }: {
     </div>);
 }
 export function AddCustomerModal({ open, onClose, onSuccess }: AddCustomerModalProps) {
+    const maxBirthDate = useMemo(() => getMaxBirthDate(), []);
     const [step, setStep] = useState<'form' | 'success'>('form');
     const [form, setForm] = useState<FormState>(INITIAL_FORM);
     const [createdResult, setCreatedResult] = useState<CreateUserResult | null>(null);
@@ -110,7 +133,7 @@ export function AddCustomerModal({ open, onClose, onSuccess }: AddCustomerModalP
     const isValid = useMemo(() => {
         return (/^\d{12}$/.test(form.citizenId)
             && form.fullName.trim().length > 0
-            && parseVnDateInput(form.dateOfBirth) !== null
+            && isIsoBirthDateValid(form.dateOfBirth)
             && form.address.trim().length > 0);
     }, [form]);
     function resetModal() {
@@ -140,9 +163,9 @@ export function AddCustomerModal({ open, onClose, onSuccess }: AddCustomerModalP
         if (!isValid || saving) {
             return;
         }
-        const isoDate = parseVnDateInput(form.dateOfBirth);
-        if (!isoDate) {
-            setError('Ngày sinh không hợp lệ. Định dạng: dd/MM/yyyy');
+        const isoDate = form.dateOfBirth;
+        if (!isIsoBirthDateValid(isoDate)) {
+            setError('Ngày sinh không hợp lệ.');
             return;
         }
         const input: CreateUserInput = {
@@ -209,10 +232,16 @@ export function AddCustomerModal({ open, onClose, onSuccess }: AddCustomerModalP
 
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium text-foreground">
-                  Ngày / Tháng / Năm Sinh <span className="text-red-600">*</span>
+                  Ngày sinh <span className="text-red-600">*</span>
                 </span>
-                <input type="text" value={form.dateOfBirth} onChange={(event) => updateField('dateOfBirth', event.target.value)} className="form-input" placeholder="dd/MM/yyyy"/>
-                <span className="mt-1 block text-xs text-muted">Định dạng: dd/MM/yyyy</span>
+                <input
+                  type="date"
+                  value={form.dateOfBirth}
+                  min={MIN_BIRTH_DATE}
+                  max={maxBirthDate}
+                  onChange={(event) => updateField('dateOfBirth', event.target.value)}
+                  className="form-input"
+                />
               </label>
 
               <fieldset>

@@ -1,5 +1,5 @@
 import api, { API_PATHS } from '@/lib/api';
-import type { CreateUserInput, CreateUserResult, Gender, User } from '@/types';
+import type { CreateUserInput, CreateUserResult, Gender, UpdateUserInput, User } from '@/types';
 import { getApiCifFromUserId } from '@/utils/apiAccountCache';
 import { notifyDataChange } from '@/utils/dataChangeBus';
 import { warmApiAccountCache } from '@/services/accountService';
@@ -16,6 +16,7 @@ interface ApiCustomer {
     TinhTrangHonNhan: string | null;
     HocVan: string | null;
     ThuNhapTBThang: number | null;
+    CIF?: string | null;
 }
 function mapUser(row: ApiCustomer): User {
     return {
@@ -61,8 +62,31 @@ export async function createUser(input: CreateUserInput): Promise<CreateUserResu
     const user = mapUser(data);
     await warmApiAccountCache();
     notifyDataChange('users');
-    const cif = getApiCifFromUserId(user.id) ?? user.id;
+    const cif = data.CIF?.trim() || getApiCifFromUserId(user.id) || user.id;
     return { user, cif };
+}
+
+function toUpdatePayload(input: UpdateUserInput) {
+    return {
+        fullName: input.fullName.trim(),
+        citizenId: input.citizenId,
+        dateOfBirth: input.dateOfBirth,
+        gender: input.gender,
+        phone: input.phone.trim() || null,
+        email: input.email.trim() || null,
+        address: input.address.trim() || null,
+        workplace: input.workplace.trim() || null,
+        maritalStatus: input.maritalStatus.trim() || null,
+        education: input.education.trim() || null,
+        monthlyIncome: input.monthlyIncomeAvg > 0 ? input.monthlyIncomeAvg : null,
+    };
+}
+
+export async function updateUser(userId: string, input: UpdateUserInput): Promise<User> {
+    const { data } = await api.put<ApiCustomer>(`${API_PATHS.customers}/${userId}`, toUpdatePayload(input));
+    await warmApiAccountCache();
+    notifyDataChange('users');
+    return mapUser(data);
 }
 export async function deleteUser(userId: string): Promise<void> {
     await api.delete(`${API_PATHS.customers}/${userId}`);

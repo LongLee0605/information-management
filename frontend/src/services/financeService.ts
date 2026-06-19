@@ -1,6 +1,12 @@
 import api, { API_PATHS } from '@/lib/api';
 import type { MonthlyFinance, SourceBreakdown, UserFinance } from '@/types';
-import { APP_DATE_RANGE, DEMO_YEAR } from '@/utils/demoDate';
+import { APP_YEARS, getEffectiveAppDateRange } from '@/utils/demoDate';
+
+export interface FinanceDateRange {
+    fromDate: string;
+    toDate: string;
+}
+
 interface ApiMonthlyChart {
     Thang: number;
     Nam: number;
@@ -9,12 +15,14 @@ interface ApiMonthlyChart {
     TongThuNhap?: number;
     TongChiTieu?: number;
 }
+
 interface ApiPieChart {
     DanhMuc: string;
     TongTien?: number;
     TongSoTien?: number;
     LoaiGiaoDich?: string;
 }
+
 function mapMonthly(row: ApiMonthlyChart): MonthlyFinance {
     return {
         month: `${row.Nam}-${String(row.Thang).padStart(2, '0')}`,
@@ -22,6 +30,7 @@ function mapMonthly(row: ApiMonthlyChart): MonthlyFinance {
         expense: row.TongChiTieu ?? row.TongChi ?? 0,
     };
 }
+
 function mapBreakdown(row: ApiPieChart, transactionType: 'credit' | 'debit'): SourceBreakdown {
     return {
         source: row.DanhMuc,
@@ -29,50 +38,81 @@ function mapBreakdown(row: ApiPieChart, transactionType: 'credit' | 'debit'): So
         type: transactionType === 'credit' ? 'income' : 'expense',
     };
 }
-export async function getMonthlyFinance(userId: string): Promise<MonthlyFinance[]> {
+
+function defaultFinanceRange(): FinanceDateRange {
+    const range = getEffectiveAppDateRange();
+    return { fromDate: range.fromDate, toDate: range.toDate };
+}
+
+function monthKeyFromDate(date: string): string {
+    return date.slice(0, 7);
+}
+
+function yearsInRange(fromDate: string, toDate: string): number[] {
+    const fromYear = Number(fromDate.slice(0, 4));
+    const toYear = Number(toDate.slice(0, 4));
+    return APP_YEARS.filter((year) => year >= fromYear && year <= toYear);
+}
+
+async function fetchMonthlyForYear(userId: string, year: number): Promise<MonthlyFinance[]> {
     const { data } = await api.get<ApiMonthlyChart[]>(API_PATHS.reports.monthlyChart, {
-        params: { customerId: userId, year: DEMO_YEAR },
+        params: { customerId: userId, year },
     });
     return data.map(mapMonthly);
 }
-const pieChartParams = (userId: string, transactionType: 'credit' | 'debit') => ({
-    customerId: userId,
-    transactionType,
-    fromDate: APP_DATE_RANGE.fromDate,
-    toDate: `${DEMO_YEAR}-12-31`,
-});
-export async function getSourceBreakdown(userId: string): Promise<SourceBreakdown[]> {
+
+async function getMonthlyFinance(userId: string, range: FinanceDateRange): Promise<MonthlyFinance[]> {
+    const years = yearsInRange(range.fromDate, range.toDate);
+    if (!years.length) {
+        return [];
+    }
+
+    const chunks = await Promise.all(years.map((year) => fetchMonthlyForYear(userId, year)));
+    const fromMonth = monthKeyFromDate(range.fromDate);
+    const toMonth = monthKeyFromDate(range.toDate);
+
+    return chunks
+        .flat()
+        .filter((item) => item.month >= fromMonth && item.month <= toMonth)
+        .sort((a, b) => a.month.localeCompare(b.month));
+}
+
+function pieChartParams(userId: string, transactionType: 'credit' | 'debit', range: FinanceDateRange) {
+    return {
+        customerId: userId,
+        transactionType,
+        fromDate: range.fromDate,
+        toDate: range.toDate,
+    };
+}
+
+export async function getSourceBreakdown(
+    userId: string,
+    range: FinanceDateRange = defaultFinanceRange(),
+): Promise<SourceBreakdown[]> {
     const [income, expense] = await Promise.all([
         api.get<ApiPieChart[]>(API_PATHS.reports.pieChart, {
-            params: pieChartParams(userId, 'credit'),
+            params: pieChartParams(userId, 'credit', range),
         }),
         api.get<ApiPieChart[]>(API_PATHS.reports.pieChart, {
-            params: pieChartParams(userId, 'debit'),
+            params: pieChartParams(userId, 'debit', range),
         }),
     ]);
+
     return [
         ...income.data.map((row) => mapBreakdown(row, 'credit')),
         ...expense.data.map((row) => mapBreakdown(row, 'debit')),
     ];
 }
-export async function getUserFinance(userId: string): Promise<UserFinance | null> {
-    const [monthlyRes, incomeRes, expenseRes] = await Promise.all([
-        api.get<ApiMonthlyChart[]>(API_PATHS.reports.monthlyChart, {
-            params: { customerId: userId, year: DEMO_YEAR },
-        }),
-        api.get<ApiPieChart[]>(API_PATHS.reports.pieChart, {
-            params: pieChartParams(userId, 'credit'),
-        }),
-        api.get<ApiPieChart[]>(API_PATHS.reports.pieChart, {
-            params: pieChartParams(userId, 'debit'),
-        }),
+
+export async function getUserFinance(
+    userId: string,
+    range: FinanceDateRange = defaultFinanceRange(),
+): Promise<UserFinance> {
+    const [monthly, breakdown] = await Promise.all([
+        getMonthlyFinance(userId, range),
+        getSourceBreakdown(userId, range),
     ]);
-    const monthly = monthlyRes.data.map(mapMonthly);
-    const breakdown = [
-        ...incomeRes.data.map((row) => mapBreakdown(row, 'credit')),
-        ...expenseRes.data.map((row) => mapBreakdown(row, 'debit')),
-    ];
-    if (!monthly.length && !breakdown.length)
-        return null;
+
     return { userId, monthly, breakdown };
 }

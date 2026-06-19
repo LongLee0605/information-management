@@ -133,7 +133,7 @@ function buildMoneyFlowParams(filters: Partial<MoneyFlowFilterParams> & {
     maxLevel?: number;
 }) {
     return {
-        ...(filters.customerId && { customerId: filters.customerId }),
+        ...(filters.customerId?.trim() && { customerId: filters.customerId.trim() }),
         ...(filters.cif?.trim() && { cif: filters.cif.trim() }),
         ...(filters.accountNumber?.trim() && { accountNumber: filters.accountNumber.trim() }),
         ...(filters.fromDate && { fromDate: filters.fromDate }),
@@ -177,7 +177,12 @@ export async function getMoneyFlowTrace(userId: string): Promise<MoneyFlowTrace 
 export async function searchMoneyFlow(filters: MoneyFlowFilterParams): Promise<MoneyFlowSearchResult> {
     const empty = { relatedAccounts: 0, totalTransactions: 0, totalFlowAmount: 0, traceLevels: 0 };
 
-    if (!filters.cif.trim() && !filters.accountNumber.trim()) {
+    const hasLookup = Boolean(
+        filters.customerId?.trim()
+        || filters.cif.trim()
+        || filters.accountNumber.trim(),
+    );
+    if (!hasLookup) {
         return { trace: null, stats: empty, error: 'Vui lòng nhập Số CIF hoặc Số tài khoản.' };
     }
 

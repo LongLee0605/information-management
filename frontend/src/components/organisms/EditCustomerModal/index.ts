@@ -1,0 +1,1 @@
+export { EditCustomerModal } from './EditCustomerModal';

@@ -19,15 +19,12 @@ BEGIN
     SET XACT_ABORT ON;
 
     BEGIN TRY
-        -- Kiểm tra tồn tại
         IF NOT EXISTS (SELECT 1 FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang)
             THROW 50020, N'Khong tim thay KhachHang.', 1;
 
-        -- Bắt buộc xác nhận
         IF @XacNhan <> 1
             THROW 50021, N'Phai truyen @XacNhan = 1 de xac nhan xoa.', 1;
 
-        -- Kiểm tra còn tài khoản active có số dư
         IF EXISTS (
             SELECT 1 FROM dbo.TaiKhoan
             WHERE MaKhachHang = @MaKhachHang
@@ -38,14 +35,29 @@ BEGIN
 
         BEGIN TRANSACTION;
 
-        -- Đóng băng tất cả tài khoản của khách hàng
-        UPDATE dbo.TaiKhoan
-        SET TrangThai = 'inactive'
-        WHERE MaKhachHang = @MaKhachHang
-          AND TrangThai = 'active';
+        IF COL_LENGTH('dbo.GiaoDich', 'MaTaiKhoanDich') IS NOT NULL
+        BEGIN
+            EXEC sp_executesql
+                N'UPDATE gd
+                  SET gd.MaTaiKhoanDich = NULL
+                  FROM dbo.GiaoDich gd
+                  INNER JOIN dbo.TaiKhoan tk ON tk.MaTaiKhoan = gd.MaTaiKhoanDich
+                  WHERE tk.MaKhachHang = @MaKhachHang
+                    AND gd.MaTaiKhoanDich IS NOT NULL;',
+                N'@MaKhachHang INT',
+                @MaKhachHang = @MaKhachHang;
+        END;
 
-        -- Xóa khách hàng
-        DELETE FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang;
+        DELETE gd
+        FROM dbo.GiaoDich gd
+        INNER JOIN dbo.TaiKhoan tk ON tk.MaTaiKhoan = gd.MaTaiKhoan
+        WHERE tk.MaKhachHang = @MaKhachHang;
+
+        DELETE FROM dbo.TaiKhoan
+        WHERE MaKhachHang = @MaKhachHang;
+
+        DELETE FROM dbo.KhachHang
+        WHERE MaKhachHang = @MaKhachHang;
 
         COMMIT TRANSACTION;
 

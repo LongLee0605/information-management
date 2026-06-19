@@ -11,7 +11,7 @@ export const RECIPIENT_BANKS = [
         id: 'tpbank',
         shortName: 'TPBank',
         fullName: 'Ngân hàng TP Bank',
-        accentClass: 'border-border bg-white',
+        accentClass: 'border-red-600 bg-red-50',
         logoClass: 'bg-red-600 text-white',
         logoText: 'TP',
     },

@@ -193,7 +193,7 @@ export function TransferFlow({ defaultUserId, returnPath }: TransferFlowProps) {
           <div>
             <p className="mb-3 text-sm font-semibold text-foreground">Ngân hàng nhận</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              {RECIPIENT_BANKS.map((bank) => (<button key={bank.id} type="button" onClick={() => setBankId(bank.id)} className={cn('flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-colors', bankId === bank.id ? bank.accentClass : 'border-border bg-white hover:bg-table-stripe')}>
+              {RECIPIENT_BANKS.map((bank) => (<button key={bank.id} type="button" onClick={() => { setBankId(bank.id); setFormError(null); }} className={cn('flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-colors', bankId === bank.id ? bank.accentClass : 'border-border bg-white hover:bg-table-stripe')}>
                   <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold', bank.logoClass)}>
                     {bank.logoText}
                   </span>

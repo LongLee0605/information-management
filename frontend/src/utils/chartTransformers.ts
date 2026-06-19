@@ -65,21 +65,6 @@ export function filterMonthlyByDateRange(data: MonthlyFinance[], fromDate: strin
     const toMonth = toMonthKey(toDate);
     return data.filter((item) => item.month >= fromMonth && item.month <= toMonth);
 }
-export function filterBreakdownByDateRange(breakdown: SourceBreakdown[], allMonthly: MonthlyFinance[], fromDate: string, toDate: string): SourceBreakdown[] {
-    const filteredMonthly = filterMonthlyByDateRange(allMonthly, fromDate, toDate);
-    const totalMonths = Math.max(allMonthly.length, 1);
-    if (filteredMonthly.length === 0) {
-        return [];
-    }
-    const ratio = filteredMonthly.length / totalMonths;
-    if (ratio >= 1) {
-        return breakdown;
-    }
-    return breakdown.map((item) => ({
-        ...item,
-        amount: Math.round(item.amount * ratio),
-    }));
-}
 export function formatDateRangeLabel(fromDate: string, toDate: string): string {
     return `${formatDemoDateLabel(fromDate)} – ${formatDemoDateLabel(toDate)}`;
 }

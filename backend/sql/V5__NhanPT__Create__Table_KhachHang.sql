@@ -6,7 +6,6 @@
 USE QLTT;
 GO
 
--- Drop in reverse dependency order to avoid FK constraint errors
 IF OBJECT_ID('dbo.ChuyenKhoan', 'U') IS NOT NULL DROP TABLE dbo.ChuyenKhoan;
 IF OBJECT_ID('dbo.GiaoDich',   'U') IS NOT NULL DROP TABLE dbo.GiaoDich;
 IF OBJECT_ID('dbo.TaiKhoan',   'U') IS NOT NULL DROP TABLE dbo.TaiKhoan;

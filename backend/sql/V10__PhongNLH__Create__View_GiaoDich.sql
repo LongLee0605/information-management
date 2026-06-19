@@ -23,11 +23,13 @@ SELECT
     gd.PhuongThucThanhToan,
     tk.MaTaiKhoan,
     tk.SoTaiKhoan,
+    tk.CIF,
     tk.LoaiTaiKhoan,
     tk.NganHang,
     kh.MaKhachHang,
     kh.HoTen,
-    kh.DienThoai
+    kh.DienThoai,
+    kh.Email
 FROM dbo.GiaoDich gd
 INNER JOIN dbo.TaiKhoan tk ON tk.MaTaiKhoan = gd.MaTaiKhoan
 INNER JOIN dbo.KhachHang kh ON kh.MaKhachHang = tk.MaKhachHang;

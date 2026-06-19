@@ -21,6 +21,19 @@ export interface CreateUserInput {
     gender: Gender;
     address: string;
 }
+export interface UpdateUserInput {
+    citizenId: string;
+    fullName: string;
+    dateOfBirth: string;
+    gender: Gender;
+    phone: string;
+    email: string;
+    address: string;
+    workplace: string;
+    maritalStatus: string;
+    education: string;
+    monthlyIncomeAvg: number;
+}
 export interface CreateUserResult {
     user: User;
     cif: string;

@@ -12,4 +12,3 @@ BEGIN
     COLLATE Vietnamese_CI_AS;
 END;
 GO
-

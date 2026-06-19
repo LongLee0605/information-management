@@ -11,43 +11,38 @@ IF OBJECT_ID('dbo.SP_BaoCao_TongQuan', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE dbo.SP_BaoCao_TongQuan
-    @TuNgay     DATE = NULL,
-    @DenNgay    DATE = NULL
+    @TuNgay     DATETIME        = NULL,
+    @DenNgay    DATETIME        = NULL,
+    @CIF        VARCHAR(20)     = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Mặc định: 30 ngày gần nhất
-    IF @TuNgay IS NULL  SET @TuNgay  = CAST(DATEADD(DAY, -30, GETDATE()) AS DATE);
-    IF @DenNgay IS NULL SET @DenNgay = CAST(GETDATE() AS DATE);
+    IF @TuNgay IS NULL
+        SET @TuNgay = CAST(DATEADD(DAY, -30, GETDATE()) AS DATE);
 
-    -- Tổng quan khách hàng & tài khoản
+    IF @DenNgay IS NULL
+        SET @DenNgay = CAST(GETDATE() AS DATE);
+
+    IF @TuNgay > @DenNgay
+    BEGIN
+        DECLARE @Swap DATETIME = @TuNgay;
+        SET @TuNgay = @DenNgay;
+        SET @DenNgay = @Swap;
+    END;
+
     SELECT
-        (SELECT COUNT(*) FROM dbo.KhachHang)                                AS TongKhachHang,
-        (SELECT COUNT(*) FROM dbo.TaiKhoan WHERE TrangThai = 'active')      AS TaiKhoanActive,
-        (SELECT COUNT(*) FROM dbo.TaiKhoan WHERE TrangThai = 'inactive')    AS TaiKhoanInactive,
-        (SELECT SUM(SoDuHienTai) FROM dbo.TaiKhoan WHERE TrangThai = 'active') AS TongSoDuHienTai,
-        (SELECT SUM(SoDuDongBang) FROM dbo.TaiKhoan WHERE TrangThai = 'inactive') AS TongSoDuDongBang;
-
-    -- Giao dịch trong kỳ
-    SELECT
-        COUNT(*)                                                            AS TongGiaoDich,
-        SUM(CASE WHEN LoaiGiaoDich = 'credit' THEN SoTien ELSE 0 END)      AS TongThu,
-        SUM(CASE WHEN LoaiGiaoDich = 'debit'  THEN SoTien ELSE 0 END)      AS TongChi,
-        SUM(CASE WHEN LoaiGiaoDich = 'credit' THEN SoTien ELSE -SoTien END) AS ChenhLech
-    FROM dbo.GiaoDich
-    WHERE CAST(NgayGiaoDich AS DATE) BETWEEN @TuNgay AND @DenNgay;
-
-    -- Top 5 danh mục chi tiêu
-    SELECT TOP 5
-        DanhMuc,
-        COUNT(*)        AS SoGiaoDich,
-        SUM(SoTien)     AS TongTien
-    FROM dbo.GiaoDich
-    WHERE LoaiGiaoDich = 'debit'
-      AND CAST(NgayGiaoDich AS DATE) BETWEEN @TuNgay AND @DenNgay
-      AND DanhMuc IS NOT NULL
-    GROUP BY DanhMuc
-    ORDER BY TongTien DESC;
+        COUNT(*) AS TongGiaoDich,
+        ISNULL(SUM(CASE WHEN gd.LoaiGiaoDich = 'debit'  THEN gd.SoTien ELSE 0 END), 0) AS TongGhiNo,
+        ISNULL(SUM(CASE WHEN gd.LoaiGiaoDich = 'credit' THEN gd.SoTien ELSE 0 END), 0) AS TongGhiCo,
+        SUM(CASE WHEN gd.PhuongThucThanhToan = 'NAPAS' THEN 1 ELSE 0 END) AS NapasCount,
+        SUM(CASE
+            WHEN gd.PhuongThucThanhToan IS NOT NULL AND gd.PhuongThucThanhToan <> 'NAPAS' THEN 1
+            ELSE 0
+        END) AS NoiBoCount
+    FROM dbo.GiaoDich gd
+    INNER JOIN dbo.TaiKhoan tk ON tk.MaTaiKhoan = gd.MaTaiKhoan
+    WHERE CAST(gd.NgayGiaoDich AS DATE) BETWEEN CAST(@TuNgay AS DATE) AND CAST(@DenNgay AS DATE)
+      AND (@CIF IS NULL OR tk.CIF = @CIF);
 END;
 GO

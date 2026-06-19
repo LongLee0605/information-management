@@ -2,6 +2,7 @@
 -- V6__LoiLCA__Create__Table_TaiKhoan.sql
 -- Tạo bảng TaiKhoan (tài khoản ngân hàng)
 -- Phụ thuộc: KhachHang (V5)
+-- SoDuDongBang = số dư phong tỏa (view V9 alias SoDuPhongToa)
 -- =============================================================================
 
 USE QLTT;
@@ -41,4 +42,12 @@ GO
 
 CREATE NONCLUSTERED INDEX IX_TaiKhoan_MaKhachHang
     ON dbo.TaiKhoan (MaKhachHang);
+GO
+
+CREATE NONCLUSTERED INDEX IX_TaiKhoan_CIF
+    ON dbo.TaiKhoan (CIF);
+GO
+
+CREATE NONCLUSTERED INDEX IX_TaiKhoan_CIF_MaKhachHang
+    ON dbo.TaiKhoan (CIF, MaKhachHang);
 GO

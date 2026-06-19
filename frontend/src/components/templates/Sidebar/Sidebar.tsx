@@ -115,13 +115,13 @@ export function Sidebar() {
     const isReportsSection = isReportsPage || isMoneyTracePage;
     const [manualReportsOpen, setManualReportsOpen] = useState<boolean | null>(null);
     const reportsOpen = manualReportsOpen ?? isReportsSection;
-    return (<aside className="hidden w-64 shrink-0 flex-col bg-sidebar text-sidebar-text md:flex">
+    return (<aside className="fixed inset-y-0 left-0 z-40 hidden h-screen w-64 flex-col bg-sidebar text-sidebar-text md:flex">
       <div className="border-b border-white/10 px-5 py-5">
         <h1 className="text-base font-bold text-white">{APP_NAME}</h1>
         <p className="mt-0.5 text-xs text-sidebar-muted">{APP_SUBTITLE}</p>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4" aria-label="Menu chính">
+      <nav className="flex-1 overflow-y-auto space-y-1 px-3 py-4" aria-label="Menu chính">
         <NavItem to={ROUTES.HOME} end icon={<UsersIcon className="h-5 w-5"/>} label="Khách Hàng"/>
 
         <NavLink to={accountNavTarget} end className={() => cn('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors', isAccountPage

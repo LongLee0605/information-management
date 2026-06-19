@@ -2,6 +2,7 @@ export { UserGrid } from './UserGrid';
 export { UserProfile } from './UserProfile';
 export { UserAccountsPanel } from './UserAccountsPanel';
 export { AddCustomerModal } from './AddCustomerModal';
+export { EditCustomerModal } from './EditCustomerModal';
 export { AddAccountModal } from './AddAccountModal';
 export { LineChartPanel } from './LineChartPanel';
 export { PieChartPanel } from './PieChartPanel';

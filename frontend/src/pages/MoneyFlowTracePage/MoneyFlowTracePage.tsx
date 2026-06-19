@@ -5,12 +5,14 @@ import { MoneyFlowFilter, type MoneyFlowFilterValues, } from '@/components/molec
 import { MoneyFlowStatsCards } from '@/components/molecules/MoneyFlowStats';
 import { PageToolbar } from '@/components/molecules/PageToolbar';
 import { Skeleton } from '@/components/atoms/Skeleton';
+import { getCustomerBankAccountsByUserId, warmApiAccountCache } from '@/services/accountService';
 import { getMoneyFlowTrace, searchMoneyFlow } from '@/services/moneyFlowService';
 import { getEffectiveAppDateRange } from '@/constants';
 import type { MoneyFlowSearchResult } from '@/types/moneyFlow';
 import { getCifFromUserId } from '@/utils';
 import { formatMoneyFlowPeriodLabel } from '@/utils/moneyFlowHelpers';
 import { subscribeDataChange } from '@/utils/dataChangeBus';
+
 const DEFAULT_DATES = getEffectiveAppDateRange();
 const EMPTY_STATS = {
     relatedAccounts: 0,
@@ -18,7 +20,15 @@ const EMPTY_STATS = {
     totalFlowAmount: 0,
     traceLevels: 0,
 };
-function buildDefaultFilters(selectedUserId: string | null, rootAccount = ''): MoneyFlowFilterValues {
+
+function pickPrimaryAccount(accounts: Awaited<ReturnType<typeof getCustomerBankAccountsByUserId>>) {
+    return accounts.find((account) => account.accountType === 'payment' && account.status === 'active')
+        ?? accounts.find((account) => account.status === 'active')
+        ?? accounts[0]
+        ?? null;
+}
+
+async function buildDefaultFilters(selectedUserId: string | null, rootAccount = ''): Promise<MoneyFlowFilterValues> {
     if (!selectedUserId) {
         return {
             cif: '',
@@ -26,15 +36,26 @@ function buildDefaultFilters(selectedUserId: string | null, rootAccount = ''): M
             ...DEFAULT_DATES,
         };
     }
+
+    await warmApiAccountCache();
+    const accounts = await getCustomerBankAccountsByUserId(selectedUserId);
+    const primaryAccount = pickPrimaryAccount(accounts);
+
     return {
-        cif: getCifFromUserId(selectedUserId),
-        accountNumber: rootAccount,
+        customerId: selectedUserId,
+        cif: primaryAccount?.cif ?? getCifFromUserId(selectedUserId),
+        accountNumber: rootAccount || primaryAccount?.accountNumber || '',
         ...DEFAULT_DATES,
     };
 }
+
 export default function MoneyFlowTracePage() {
     const selectedUserId = useActiveUserId();
-    const [defaultFilters, setDefaultFilters] = useState<MoneyFlowFilterValues>(() => buildDefaultFilters(selectedUserId));
+    const [defaultFilters, setDefaultFilters] = useState<MoneyFlowFilterValues>(() => ({
+        cif: '',
+        accountNumber: '',
+        ...DEFAULT_DATES,
+    }));
     const [draftFilters, setDraftFilters] = useState<MoneyFlowFilterValues | null>(null);
     const [appliedFilters, setAppliedFilters] = useState<MoneyFlowFilterValues | null>(null);
     const [result, setResult] = useState<MoneyFlowSearchResult | null>(null);
@@ -49,12 +70,20 @@ export default function MoneyFlowTracePage() {
         return (draftFilters.cif !== appliedFilters.cif
             || draftFilters.accountNumber !== appliedFilters.accountNumber
             || draftFilters.fromDate !== appliedFilters.fromDate
-            || draftFilters.toDate !== appliedFilters.toDate);
+            || draftFilters.toDate !== appliedFilters.toDate
+            || draftFilters.customerId !== appliedFilters.customerId);
     }, [draftFilters, appliedFilters]);
     useEffect(() => {
-        return subscribeDataChange('transactions', () => {
+        const unsubscribeTx = subscribeDataChange('transactions', () => {
             setFlowRevision((value) => value + 1);
         });
+        const unsubscribeAccounts = subscribeDataChange('accounts', () => {
+            setFlowRevision((value) => value + 1);
+        });
+        return () => {
+            unsubscribeTx();
+            unsubscribeAccounts();
+        };
     }, []);
     const accountPlaceholder = useMemo(() => defaultFilters.accountNumber || 'Nhập số tài khoản F0', [defaultFilters.accountNumber]);
     useEffect(() => {
@@ -66,9 +95,10 @@ export default function MoneyFlowTracePage() {
                 const trace = await getMoneyFlowTrace(selectedUserId);
                 rootAccount = trace?.root.accountNumber ?? '';
             }
-            if (cancelled)
+            if (cancelled) {
                 return;
-            const nextDefaults = buildDefaultFilters(selectedUserId, rootAccount);
+            }
+            const nextDefaults = await buildDefaultFilters(selectedUserId, rootAccount);
             setDefaultFilters(nextDefaults);
             setDraftFilters(nextDefaults);
             if (selectedUserId) {
@@ -87,12 +117,14 @@ export default function MoneyFlowTracePage() {
         };
     }, [selectedUserId]);
     useEffect(() => {
-        if (!appliedFilters || initializing)
+        if (!appliedFilters || initializing) {
             return;
+        }
         let cancelled = false;
         async function loadResult() {
-            if (!appliedFilters)
+            if (!appliedFilters) {
                 return;
+            }
             const activeFilters = appliedFilters;
             setSearching(true);
             setHasSearched(true);
@@ -124,18 +156,25 @@ export default function MoneyFlowTracePage() {
     }, [appliedFilters, initializing, flowRevision]);
     function handleFilterChange(next: MoneyFlowFilterValues) {
         setDraftFilters((current) => {
-            const datesChanged = current &&
-                (next.fromDate !== current.fromDate || next.toDate !== current.toDate);
+            const datesChanged = current
+                && (next.fromDate !== current.fromDate || next.toDate !== current.toDate);
             if (datesChanged) {
-                setAppliedFilters(next);
+                setAppliedFilters({
+                    ...next,
+                    customerId: next.customerId ?? current.customerId ?? selectedUserId ?? undefined,
+                });
             }
             return next;
         });
     }
     function handleSearch() {
-        if (!draftFilters)
+        if (!draftFilters) {
             return;
-        setAppliedFilters({ ...draftFilters });
+        }
+        setAppliedFilters({
+            ...draftFilters,
+            customerId: draftFilters.customerId ?? selectedUserId ?? undefined,
+        });
     }
     const statsPeriodLabel = appliedFilters
         ? formatMoneyFlowPeriodLabel(appliedFilters.fromDate, appliedFilters.toDate)

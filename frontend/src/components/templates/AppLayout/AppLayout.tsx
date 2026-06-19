@@ -6,10 +6,10 @@ interface AppLayoutProps {
     children?: React.ReactNode;
 }
 export function AppLayout({ children }: AppLayoutProps) {
-    return (<div className="flex min-h-screen bg-page-bg">
+    return (<div className="min-h-screen bg-page-bg">
       <Sidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-col md:ml-64">
         <header className="border-b border-border bg-sidebar px-4 py-3 md:hidden">
           <Link to={ROUTES.HOME} className="text-sm font-bold text-white">
             {APP_NAME}

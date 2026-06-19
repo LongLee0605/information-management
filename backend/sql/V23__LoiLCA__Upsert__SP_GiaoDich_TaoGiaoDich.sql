@@ -1,9 +1,21 @@
 -- =============================================================================
 -- V23__LoiLCA__Upsert__SP_GiaoDich_TaoGiaoDich.sql
--- SP tạo giao dịch mới và cập nhật số dư tài khoản
+-- SP: dbo.SP_GiaoDich_TaoGiaoDich — tạo giao dịch và cập nhật số dư
+-- Design: SP_DESIGN.md — V23 | Backend: POST /api/transactions
 -- =============================================================================
 
 USE QLTT;
+GO
+
+IF COL_LENGTH('dbo.GiaoDich', 'MaTaiKhoanDich') IS NULL
+BEGIN
+    ALTER TABLE dbo.GiaoDich
+        ADD MaTaiKhoanDich INT NULL;
+
+    ALTER TABLE dbo.GiaoDich
+        ADD CONSTRAINT FK_GiaoDich_TaiKhoanDich
+            FOREIGN KEY (MaTaiKhoanDich) REFERENCES dbo.TaiKhoan (MaTaiKhoan);
+END;
 GO
 
 IF OBJECT_ID('dbo.SP_GiaoDich_TaoGiaoDich', 'P') IS NOT NULL
@@ -11,31 +23,43 @@ IF OBJECT_ID('dbo.SP_GiaoDich_TaoGiaoDich', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE dbo.SP_GiaoDich_TaoGiaoDich
-    @MaTaiKhoan         INT,
-    @LoaiGiaoDich       VARCHAR(10),
-    @SoTien             DECIMAL(18,2),
-    @MoTa               NVARCHAR(500)   = NULL,
-    @DanhMuc            NVARCHAR(100)   = NULL,
-    @PhuongThucThanhToan NVARCHAR(50)   = NULL
+    @MaTaiKhoan             INT,
+    @LoaiGiaoDich           VARCHAR(10),
+    @SoTien                 DECIMAL(18,2),
+    @MoTa                   NVARCHAR(500)   = NULL,
+    @DanhMuc                NVARCHAR(100)   = NULL,
+    @PhuongThucThanhToan    NVARCHAR(50)    = NULL,
+    @MaTaiKhoanDich         INT             = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
     BEGIN TRY
-        -- Validate
         IF @LoaiGiaoDich NOT IN ('credit', 'debit')
             THROW 50040, N'LoaiGiaoDich chi chap nhan ''credit'' hoac ''debit''.', 1;
 
-        IF @SoTien <= 0
+        IF @SoTien IS NULL OR @SoTien <= 0
             THROW 50041, N'SoTien phai lon hon 0.', 1;
 
-        DECLARE @TrangThai  VARCHAR(10);
-        DECLARE @SoDuHienTai DECIMAL(18,2);
-        DECLARE @SoDuDongBang DECIMAL(18,2);
+        IF @MaTaiKhoanDich IS NOT NULL AND @LoaiGiaoDich <> 'debit'
+            THROW 50047, N'MaTaiKhoanDich chi ap dung cho giao dich debit.', 1;
 
-        SELECT @TrangThai = TrangThai, @SoDuHienTai = SoDuHienTai, @SoDuDongBang = SoDuDongBang
-        FROM dbo.TaiKhoan WHERE MaTaiKhoan = @MaTaiKhoan;
+        IF @MaTaiKhoanDich = @MaTaiKhoan
+            THROW 50046, N'Tai khoan dich phai khac tai khoan nguon.', 1;
+
+        DECLARE @TrangThai      VARCHAR(10);
+        DECLARE @MaKhachHang    INT;
+        DECLARE @SoDuHienTai    DECIMAL(18,2);
+        DECLARE @SoDuDongBang   DECIMAL(18,2);
+
+        SELECT
+            @TrangThai    = tk.TrangThai,
+            @MaKhachHang  = tk.MaKhachHang,
+            @SoDuHienTai  = tk.SoDuHienTai,
+            @SoDuDongBang = tk.SoDuDongBang
+        FROM dbo.TaiKhoan tk
+        WHERE tk.MaTaiKhoan = @MaTaiKhoan;
 
         IF @TrangThai IS NULL
             THROW 50042, N'Khong tim thay TaiKhoan.', 1;
@@ -43,7 +67,27 @@ BEGIN
         IF @TrangThai = 'inactive'
             THROW 50043, N'Tai khoan dang bi khoa, khong the thuc hien giao dich.', 1;
 
-        -- Kiểm tra số dư khả dụng khi debit
+        IF @MaTaiKhoanDich IS NOT NULL
+        BEGIN
+            DECLARE @DichTrangThai  VARCHAR(10);
+            DECLARE @DichMaKH       INT;
+
+            SELECT
+                @DichTrangThai = tk.TrangThai,
+                @DichMaKH      = tk.MaKhachHang
+            FROM dbo.TaiKhoan tk
+            WHERE tk.MaTaiKhoan = @MaTaiKhoanDich;
+
+            IF @DichTrangThai IS NULL
+                THROW 50045, N'Khong tim thay tai khoan dich.', 1;
+
+            IF @DichTrangThai = 'inactive'
+                THROW 50048, N'Tai khoan dich dang bi khoa.', 1;
+
+            IF @DichMaKH = @MaKhachHang
+                THROW 50049, N'Khong the chuyen tien giua cac tai khoan cung khach hang.', 1;
+        END;
+
         IF @LoaiGiaoDich = 'debit'
         BEGIN
             DECLARE @SoDuKhaDung DECIMAL(18,2) = @SoDuHienTai - @SoDuDongBang;
@@ -53,13 +97,27 @@ BEGIN
 
         BEGIN TRANSACTION;
 
-        -- Ghi giao dịch
-        INSERT INTO dbo.GiaoDich (MaTaiKhoan, LoaiGiaoDich, SoTien, MoTa, DanhMuc, PhuongThucThanhToan)
-        VALUES (@MaTaiKhoan, @LoaiGiaoDich, @SoTien, @MoTa, @DanhMuc, @PhuongThucThanhToan);
+        INSERT INTO dbo.GiaoDich (
+            MaTaiKhoan,
+            MaTaiKhoanDich,
+            LoaiGiaoDich,
+            SoTien,
+            MoTa,
+            DanhMuc,
+            PhuongThucThanhToan
+        )
+        VALUES (
+            @MaTaiKhoan,
+            @MaTaiKhoanDich,
+            @LoaiGiaoDich,
+            @SoTien,
+            @MoTa,
+            @DanhMuc,
+            @PhuongThucThanhToan
+        );
 
         DECLARE @MaGiaoDich INT = SCOPE_IDENTITY();
 
-        -- Cập nhật số dư
         UPDATE dbo.TaiKhoan
         SET SoDuHienTai = CASE @LoaiGiaoDich
             WHEN 'credit' THEN SoDuHienTai + @SoTien
@@ -69,8 +127,13 @@ BEGIN
 
         COMMIT TRANSACTION;
 
-        SELECT gd.MaGiaoDich, gd.NgayGiaoDich, gd.LoaiGiaoDich, gd.SoTien,
-               tk.SoDuHienTai AS SoDuSauGiaoDich
+        SELECT
+            gd.MaGiaoDich,
+            gd.NgayGiaoDich,
+            gd.LoaiGiaoDich,
+            gd.SoTien,
+            gd.MaTaiKhoanDich,
+            tk.SoDuHienTai AS SoDuSauGiaoDich
         FROM dbo.GiaoDich gd
         INNER JOIN dbo.TaiKhoan tk ON tk.MaTaiKhoan = gd.MaTaiKhoan
         WHERE gd.MaGiaoDich = @MaGiaoDich;
