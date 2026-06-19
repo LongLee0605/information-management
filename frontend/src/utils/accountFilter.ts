@@ -17,8 +17,6 @@ export const ACCOUNT_TYPE_FILTER_OPTIONS: {
 }[] = [
     { value: 'payment', label: 'Tài khoản thanh toán' },
     { value: 'savings', label: 'Tài khoản tiết kiệm' },
-    { value: 'debit', label: 'Tài khoản ghi nợ' },
-    { value: 'overdraft', label: 'Tài khoản thấu chi' },
 ];
 export const ACCOUNT_STATUS_FILTER_OPTIONS: {
     value: BankAccountStatus;

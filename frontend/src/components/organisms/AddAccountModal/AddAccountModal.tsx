@@ -32,8 +32,6 @@ const ACCOUNT_TYPE_CREATE_OPTIONS: {
 }[] = [
     { value: 'payment', label: 'Thanh toán' },
     { value: 'savings', label: 'Tiết kiệm' },
-    { value: 'debit', label: 'Ghi nợ' },
-    { value: 'overdraft', label: 'Thấu chi' },
 ];
 function BackIcon({ className }: {
     className?: string;

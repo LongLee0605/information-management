@@ -13,13 +13,11 @@ BEGIN
     VALUES
         (1, '26410052', '01234567890', 'payment',  N'Tài khoản thanh toán', 37900000,  1895000, 'active', N'OCB',         1),
         (1, '26410052', '01234569001', 'savings',  N'Tài khoản tiết kiệm',  24635000,  0,       'active', N'OCB',         0),
-        (1, '26410052', '01234570112', 'debit',    N'Tài khoản ghi nợ',      5685000,  3032000, 'active', N'OCB',         0),
 
         (2, '26410064', '09876543210', 'payment',  N'Tài khoản thanh toán', 166000000, 8300000, 'active', N'TPBank',      1),
         (2, '26410064', '09876544321', 'savings',  N'Tài khoản tiết kiệm',   85000000, 0,       'active', N'TPBank',      0),
 
         (3, '26410082', '07654321098', 'payment',  N'Tài khoản thanh toán',  52000000, 2600000, 'active', N'Vietcombank', 1),
-        (3, '26410082', '07654322109', 'overdraft',N'Tài khoản thấu chi',     8500000, 4250000, 'active', N'Vietcombank', 0),
 
         (4, '26410138', '05432109876', 'payment',  N'Tài khoản thanh toán',  12500000, 625000,  'active', N'BIDV',        1),
 

@@ -1,4 +1,4 @@
-export type BankAccountType = 'payment' | 'savings' | 'debit' | 'overdraft';
+export type BankAccountType = 'payment' | 'savings';
 export type BankAccountStatus = 'active' | 'inactive';
 export interface CustomerBankAccount {
     id: string;

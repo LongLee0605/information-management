@@ -96,25 +96,54 @@ function buildFlowTree(rows: ApiMoneyFlowRow[], rootUserId: string): MoneyFlowNo
 
     const hops = [...rows]
         .filter((row) => row.CapDo > 0)
-        .sort((a, b) => a.CapDo - b.CapDo || (a.MaTaiKhoanNguon ?? 0) - (b.MaTaiKhoanNguon ?? 0));
+        .sort((a, b) => a.CapDo - b.CapDo
+            || (a.MaTaiKhoanNguon ?? 0) - (b.MaTaiKhoanNguon ?? 0)
+            || (b.SoTien ?? 0) - (a.SoTien ?? 0));
+
+    const linkedHops: ApiMoneyFlowRow[] = [];
 
     for (const hop of hops) {
         const node = mapRowToNode(hop);
-        const parentAccountId = hop.MaTaiKhoanNguon ?? rootRow.MaTaiKhoan;
-        const parent = nodesByAccount.get(parentAccountId) ?? root;
+        let parent: MoneyFlowNode | null = null;
 
-        parent.children = parent.children ?? [];
-        parent.children.push(node);
+        if (hop.CapDo === 1) {
+            parent = root;
+        }
+        else {
+            const parentAccountId = hop.MaTaiKhoanNguon;
+            if (parentAccountId == null) {
+                continue;
+            }
+            parent = nodesByAccount.get(parentAccountId) ?? null;
+            if (!parent || parent.level + 1 !== hop.CapDo) {
+                continue;
+            }
+        }
+
+        const children = parent.children ?? [];
+        const isDuplicate = children.some((child) => (
+            child.level === node.level
+            && child.userId === node.userId
+            && child.accountNumber === node.accountNumber
+        ));
+        if (isDuplicate) {
+            continue;
+        }
+
+        parent.children = [...children, node];
+        linkedHops.push(hop);
 
         if (!nodesByAccount.has(hop.MaTaiKhoan)) {
             nodesByAccount.set(hop.MaTaiKhoan, node);
         }
     }
 
-    if (hops.length) {
-        root.amount = hops.reduce((sum, row) => sum + (row.SoTien ?? 0), 0);
-        root.transactionCount = hops.length;
-        const dates = hops
+    sortChildrenByLevel(root);
+
+    if (linkedHops.length) {
+        root.amount = linkedHops.reduce((sum, row) => sum + (row.SoTien ?? 0), 0);
+        root.transactionCount = linkedHops.length;
+        const dates = linkedHops
             .map((row) => normalizeDate(row.NgayTu ?? row.NgayGiaoDich))
             .filter(Boolean)
             .sort();
@@ -126,6 +155,21 @@ function buildFlowTree(rows: ApiMoneyFlowRow[], rootUserId: string): MoneyFlowNo
     }
 
     return root;
+}
+
+function sortChildrenByLevel(node: MoneyFlowNode): void {
+    if (!node.children?.length) {
+        return;
+    }
+    node.children.sort((left, right) => {
+        if (left.level !== right.level) {
+            return left.level - right.level;
+        }
+        return (right.amount ?? 0) - (left.amount ?? 0);
+    });
+    for (const child of node.children) {
+        sortChildrenByLevel(child);
+    }
 }
 
 function buildMoneyFlowParams(filters: Partial<MoneyFlowFilterParams> & {

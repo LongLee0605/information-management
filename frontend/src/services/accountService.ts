@@ -20,7 +20,7 @@ interface ApiAccount {
 }
 function mapAccountType(loai: string): BankAccountType {
     const map: Record<string, BankAccountType> = {
-        payment: 'payment', savings: 'savings', debit: 'debit', overdraft: 'overdraft',
+        payment: 'payment', savings: 'savings',
     };
     return map[loai?.toLowerCase()] ?? 'payment';
 }

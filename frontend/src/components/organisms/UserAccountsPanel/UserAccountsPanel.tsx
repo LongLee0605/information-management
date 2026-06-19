@@ -24,8 +24,6 @@ interface UserAccountsPanelProps {
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
     payment: 'border-blue-200 bg-blue-50 text-blue-700',
     savings: 'border-green-200 bg-green-50 text-green-700',
-    debit: 'border-amber-200 bg-amber-50 text-amber-800',
-    overdraft: 'border-red-200 bg-red-50 text-red-700',
 };
 function AccountTypeBadge({ account }: {
     account: EnrichedBankAccount;

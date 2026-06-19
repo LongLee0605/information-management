@@ -32,7 +32,7 @@ CREATE TABLE dbo.TaiKhoan
         FOREIGN KEY (MaKhachHang) REFERENCES dbo.KhachHang (MaKhachHang)
         ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT CK_TaiKhoan_LoaiTaiKhoan
-        CHECK (LoaiTaiKhoan IN ('payment', 'savings', 'debit', 'overdraft')),
+        CHECK (LoaiTaiKhoan IN ('payment', 'savings')),
     CONSTRAINT CK_TaiKhoan_TrangThai
         CHECK (TrangThai IN ('active', 'inactive')),
     CONSTRAINT CK_TaiKhoan_SoDu
