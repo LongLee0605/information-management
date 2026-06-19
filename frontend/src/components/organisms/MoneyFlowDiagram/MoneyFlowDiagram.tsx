@@ -17,8 +17,8 @@ interface MoneyFlowDiagramProps {
 }
 const CARD_WIDTH = 176;
 const CARD_WIDTH_COMPACT = 152;
-const CARD_HEIGHT = 210;
-const CARD_HEIGHT_COMPACT = 198;
+const CARD_HEIGHT = 240;
+const CARD_HEIGHT_COMPACT = 220;
 const COLUMN_GAP = 24;
 const CHILD_GAP = 16;
 const CONNECTOR_GAP = 8;
@@ -141,7 +141,7 @@ const FlowNodeCard = memo(function FlowNodeCard({ node, sourceNode, compact, hig
                 onSelect?.(node.id);
             }
         }} className={cn('box-border flex shrink-0 cursor-pointer flex-col overflow-hidden rounded-xl border p-2 text-center shadow-sm transition-shadow duration-200', 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400', isRoot && 'border-primary-600 bg-primary-600 text-white', isF1 && 'border-slate-200 bg-white hover:border-primary-300 hover:shadow-md', node.level === 2 && 'border-slate-200 bg-white hover:border-primary-200 hover:shadow-md', isF3 && 'border-dashed border-amber-400 bg-amber-50/60 hover:bg-amber-50', (highlighted || selected) && 'shadow-md ring-2 ring-primary-400')} style={{ width: cardWidth, height: cardHeight }}>
-      <div className="flex h-4 shrink-0 items-center justify-center">
+      <div className="flex h-4 shrink-0 items-center justify-center mb-2">
         <MoneyFlowLevelBadge level={node.level} onDark={isRoot}/>
       </div>
 
@@ -174,8 +174,8 @@ const FlowNodeCard = memo(function FlowNodeCard({ node, sourceNode, compact, hig
         {node.periodLabel ?? '—'}
       </p>
 
-      <div className="flex h-4 shrink-0 items-center justify-center">
-        <span className={cn('rounded px-1.5 py-px text-[8px] font-bold uppercase leading-none', node.bankBadgeClass)}>
+      <div className="flex shrink-0 items-center justify-center">
+        <span className={cn('rounded mt-2 px-1.5 py-1 text-[8px] font-bold uppercase', node.bankBadgeClass)}>
           {node.bank}
         </span>
       </div>

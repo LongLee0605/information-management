@@ -50,7 +50,7 @@ interface MoneyFlowLevelBadgeProps {
     className?: string;
 }
 export function MoneyFlowLevelBadge({ level, size = 'xs', onDark = false, className, }: MoneyFlowLevelBadgeProps) {
-    return (<span className={cn('inline-flex shrink-0 items-center justify-center rounded-md font-extrabold uppercase leading-none tracking-wider', size === 'xs' ? 'min-w-[28px] px-1.5 py-0.5 text-[9px]' : 'min-w-[34px] px-2 py-1 text-[10px]', getLevelBadgeClass(level, onDark), className)}>
+    return (<span className={cn('inline-flex shrink-0 items-center justify-center rounded-md font-extrabold uppercase tracking-wider', size === 'xs' ? 'min-w-[28px] px-1.5 py-0.5 text-[9px]' : 'min-w-[34px] px-2 py-1 text-[10px]', getLevelBadgeClass(level, onDark), className)}>
       {getLevelLabel(level)}
     </span>);
 }
