@@ -1,8 +1,15 @@
--- =============================================================================
--- V10__PhongNLH__Create__View_GiaoDich.sql
--- Tạo View hiển thị giao dịch kèm thông tin tài khoản và khách hàng
--- Phụ thuộc: KhachHang (V5), TaiKhoan (V6), GiaoDich (V7)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410089 - Nguyễn Lê Hoài Phong
+File        : V10__PhongNLH__Create__View_GiaoDich.sql
+Part        : 3.3 - View GiaoDich
+Purpose     : Tạo View hiển thị giao dịch kèm thông tin tài khoản và khách hàng
+
+Yêu cầu đề bài:
+- Phụ thuộc: KhachHang (V5), TaiKhoan (V6), GiaoDich (V7)
+- Tạo view VW_GiaoDich join TaiKhoan và KhachHang
+===============================================================================
+*/
 
 USE QLTT;
 GO

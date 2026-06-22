@@ -1,6 +1,16 @@
--- =============================================================================
--- V20__PhongNLH__Upsert__SP_TaiKhoan_MoTaiKhoan.sql
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410089 - Nguyễn Lê Hoài Phong
+File        : V20__PhongNLH__Upsert__SP_TaiKhoan_MoTaiKhoan.sql
+Part        : 6.5 - SP_TaiKhoan_MoTaiKhoan
+Purpose     : SP mở tài khoản mới cho khách hàng theo CIF
+
+Yêu cầu đề bài:
+- Mở tài khoản payment hoặc savings theo CIF
+- Mỗi khách hàng tối đa 1 tài khoản/loại
+- Tự sinh số tài khoản unique
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -181,3 +191,19 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: mở tài khoản savings cho CIF seed (nếu chưa có loại savings)
+
+Cleanup: UPDATE dbo.TaiKhoan SET TrangThai = 'inactive' WHERE SoTaiKhoan = @NewSoTaiKhoan;
+===============================================================================
+*/
+
+-- DECLARE @NewSoTaiKhoan VARCHAR(20);
+-- EXEC dbo.SP_TaiKhoan_MoTaiKhoan @CIF = '26410052', @LoaiTaiKhoan = 'savings';
+-- SET @NewSoTaiKhoan = (SELECT TOP 1 SoTaiKhoan FROM dbo.TaiKhoan WHERE CIF = '26410052' AND LoaiTaiKhoan = 'savings' ORDER BY MaTaiKhoan DESC);
+-- UPDATE dbo.TaiKhoan SET TrangThai = 'inactive' WHERE SoTaiKhoan = @NewSoTaiKhoan;
+

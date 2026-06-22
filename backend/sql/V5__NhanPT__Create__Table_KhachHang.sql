@@ -1,7 +1,15 @@
--- =============================================================================
--- V5__NhanPT__Create__Table_KhachHang.sql
--- Tạo bảng KhachHang
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410082 - Phan Thanh Nhân
+File        : V5__NhanPT__Create__Table_KhachHang.sql
+Part        : 2.1 - Tạo bảng KhachHang
+Purpose     : Tạo bảng KhachHang
+
+Yêu cầu đề bài:
+- Tạo bảng KhachHang với các ràng buộc PK, UQ, CHECK
+- Tạo index IX_KhachHang_HoTen
+===============================================================================
+*/
 
 USE QLTT;
 GO

@@ -1,8 +1,15 @@
--- =============================================================================
--- V9__LongLTD__Create__View_TaiKhoan.sql
--- Tạo View hiển thị tài khoản kèm thông tin khách hàng
--- Phụ thuộc: KhachHang (V5), TaiKhoan (V6)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410067 - Lê Trần Đăng Long
+File        : V9__LongLTD__Create__View_TaiKhoan.sql
+Part        : 3.2 - View TaiKhoan
+Purpose     : Tạo View hiển thị tài khoản kèm thông tin khách hàng
+
+Yêu cầu đề bài:
+- Phụ thuộc: KhachHang (V5), TaiKhoan (V6)
+- Tạo view VW_TaiKhoan với SoDuKhaDung và alias SoDuPhongToa
+===============================================================================
+*/
 
 USE QLTT;
 GO

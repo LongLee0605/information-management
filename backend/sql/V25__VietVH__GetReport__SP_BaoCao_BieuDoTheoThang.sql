@@ -1,7 +1,15 @@
--- =============================================================================
--- V25__VietVH__GetReport__SP_BaoCao_BieuDoTheoThang.sql
--- SP báo cáo biểu đồ thu chi theo tháng (line chart data)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410156 - Võ Hoàng Việt
+File        : V25__VietVH__GetReport__SP_BaoCao_BieuDoTheoThang.sql
+Part        : 6.10 - SP_BaoCao_BieuDoTheoThang
+Purpose     : SP báo cáo biểu đồ thu chi theo tháng (line chart data)
+
+Yêu cầu đề bài:
+- Báo cáo thu chi theo tháng theo MaKhachHang và Nam
+- MaKhachHang NULL = tất cả khách hàng
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -38,3 +46,16 @@ BEGIN
     ORDER BY Nam, Thang;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: biểu đồ thu chi theo tháng cho MaKhachHang = 1
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_BaoCao_BieuDoTheoThang @MaKhachHang = 1, @Nam = 2025;
+

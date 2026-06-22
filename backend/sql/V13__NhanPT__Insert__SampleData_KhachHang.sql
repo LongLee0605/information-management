@@ -1,8 +1,15 @@
--- =============================================================================
--- V13__NhanPT__Insert__SampleData_KhachHang.sql
--- Chèn dữ liệu mẫu vào bảng KhachHang
--- Dựa theo mock data trong src/data/users.json
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410082 - Phan Thanh Nhân
+File        : V13__NhanPT__Insert__SampleData_KhachHang.sql
+Part        : 5.1 - Sample data KhachHang
+Purpose     : Chèn dữ liệu mẫu vào bảng KhachHang
+
+Yêu cầu đề bài:
+- Dựa theo mock data trong src/data/users.json
+- Chèn 10 khách hàng mẫu vào bảng KhachHang
+===============================================================================
+*/
 
 USE QLTT;
 GO

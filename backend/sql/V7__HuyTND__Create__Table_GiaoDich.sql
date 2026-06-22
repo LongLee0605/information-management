@@ -1,8 +1,15 @@
--- =============================================================================
--- V7__HuyTND__Create__Table_GiaoDich.sql
--- Tạo bảng GiaoDich (lịch sử giao dịch)
--- Phụ thuộc: TaiKhoan (V6)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410051 - Trần Nguyễn Đang Huy
+File        : V7__HuyTND__Create__Table_GiaoDich.sql
+Part        : 2.3 - Tạo bảng GiaoDich
+Purpose     : Tạo bảng GiaoDich (lịch sử giao dịch)
+
+Yêu cầu đề bài:
+- Phụ thuộc: TaiKhoan (V6)
+- Tạo bảng GiaoDich với FK, CHECK và index IX_GiaoDich_MaTaiKhoan_Ngay
+===============================================================================
+*/
 
 USE QLTT;
 GO

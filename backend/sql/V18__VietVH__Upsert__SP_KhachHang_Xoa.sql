@@ -1,7 +1,16 @@
--- =============================================================================
--- V18__VietVH__Upsert__SP_KhachHang_Xoa.sql
--- SP xóa mềm khách hàng (đóng băng tất cả tài khoản liên quan)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410156 - Võ Hoàng Việt
+File        : V18__VietVH__Upsert__SP_KhachHang_Xoa.sql
+Part        : 6.3 - SP_KhachHang_Xoa
+Purpose     : SP xóa mềm khách hàng (đóng băng tất cả tài khoản liên quan)
+
+Yêu cầu đề bài:
+- Yêu cầu @XacNhan = 1 để xác nhận xóa
+- Không xóa nếu khách hàng còn tài khoản active có số dư
+- Xóa giao dịch, tài khoản và khách hàng liên quan
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -69,3 +78,19 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: xóa khách hàng test không có tài khoản active có số dư
+
+Cleanup: tạo lại dữ liệu test thủ công nếu cần (không restore tự động)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_KhachHang_ThemCapNhat @MaKhachHang = NULL, @HoTen = N'[TEST] Xoa KH', @CCCD = '079299999997', @NgaySinh = '1990-01-01', @GioiTinh = 'female';
+-- DECLARE @TestId INT = (SELECT MaKhachHang FROM dbo.KhachHang WHERE CCCD = '079299999997');
+-- UPDATE dbo.TaiKhoan SET TrangThai = 'inactive', SoDuHienTai = 0 WHERE MaKhachHang = @TestId;
+-- EXEC dbo.SP_KhachHang_Xoa @MaKhachHang = @TestId, @XacNhan = 1;
+

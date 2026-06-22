@@ -1,7 +1,16 @@
--- =============================================================================
--- V17__AnhTPQ__Upsert__SP_KhachHang_ThemCapNhat.sql
--- SP thêm mới hoặc cập nhật thông tin khách hàng
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410005 - Trần Phúc Quyền Anh
+File        : V17__AnhTPQ__Upsert__SP_KhachHang_ThemCapNhat.sql
+Part        : 6.2 - SP_KhachHang_ThemCapNhat
+Purpose     : SP thêm mới hoặc cập nhật thông tin khách hàng
+
+Yêu cầu đề bài:
+- MaKhachHang NULL/0 = thêm mới, >0 = cập nhật
+- Validate CCCD, HoTen, NgaySinh, GioiTinh
+- Tự sinh CIF và tài khoản thanh toán chính khi thêm mới
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -189,3 +198,24 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: thêm khách hàng mới qua SP
+
+Cleanup: DELETE FROM dbo.TaiKhoan WHERE MaKhachHang IN (SELECT MaKhachHang FROM dbo.KhachHang WHERE CCCD = '079299999998'); DELETE FROM dbo.KhachHang WHERE CCCD = '079299999998';
+===============================================================================
+*/
+
+-- EXEC dbo.SP_KhachHang_ThemCapNhat
+--     @MaKhachHang = NULL,
+--     @HoTen = N'[TEST] Khach Hang SP',
+--     @CCCD = '079299999998',
+--     @NgaySinh = '1995-06-01',
+--     @GioiTinh = 'male';
+--
+-- DELETE FROM dbo.TaiKhoan WHERE MaKhachHang IN (SELECT MaKhachHang FROM dbo.KhachHang WHERE CCCD = '079299999998');
+-- DELETE FROM dbo.KhachHang WHERE CCCD = '079299999998';
+

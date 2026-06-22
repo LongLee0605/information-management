@@ -1,7 +1,14 @@
--- =============================================================================
--- V2__LamLP__Create__GroupRole.sql
--- Tạo các role nhóm người dùng trong database
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410060 - Lê Phước Lâm
+File        : V2__LamLP__Create__GroupRole.sql
+Part        : 1.2 - Tạo Database Role
+Purpose     : Tạo các role nhóm người dùng trong database
+
+Yêu cầu đề bài:
+- Tạo role_admin, role_nhanvien, role_baocao trong database QLTT
+===============================================================================
+*/
 
 USE QLTT;
 GO

@@ -1,9 +1,16 @@
--- =============================================================================
--- V6__LoiLCA__Create__Table_TaiKhoan.sql
--- Tạo bảng TaiKhoan (tài khoản ngân hàng)
--- Phụ thuộc: KhachHang (V5)
--- SoDuDongBang = số dư phong tỏa (view V9 alias SoDuPhongToa)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410064 - Lê Công Anh Lợi
+File        : V6__LoiLCA__Create__Table_TaiKhoan.sql
+Part        : 2.2 - Tạo bảng TaiKhoan
+Purpose     : Tạo bảng TaiKhoan (tài khoản ngân hàng)
+
+Yêu cầu đề bài:
+- Phụ thuộc: KhachHang (V5)
+- SoDuDongBang = số dư phong tỏa (view V9 alias SoDuPhongToa)
+- Tạo bảng TaiKhoan với FK, CHECK và các index liên quan
+===============================================================================
+*/
 
 USE QLTT;
 GO

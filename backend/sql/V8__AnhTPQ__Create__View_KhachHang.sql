@@ -1,8 +1,15 @@
--- =============================================================================
--- V8__AnhTPQ__Create__View_KhachHang.sql
--- Tạo View hiển thị thông tin khách hàng kèm số tài khoản chính
--- Phụ thuộc: KhachHang (V5), TaiKhoan (V6)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410005 - Trần Phúc Quyền Anh
+File        : V8__AnhTPQ__Create__View_KhachHang.sql
+Part        : 3.1 - View KhachHang
+Purpose     : Tạo View hiển thị thông tin khách hàng kèm số tài khoản chính
+
+Yêu cầu đề bài:
+- Phụ thuộc: KhachHang (V5), TaiKhoan (V6)
+- Tạo view VW_KhachHang join tài khoản chính active
+===============================================================================
+*/
 
 USE QLTT;
 GO

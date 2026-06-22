@@ -1,7 +1,15 @@
--- =============================================================================
--- V16__NhanPT__Get__SP_KhachHang_TimKiem.sql
--- SP tìm kiếm khách hàng theo nhiều tiêu chí
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410082 - Phan Thanh Nhân
+File        : V16__NhanPT__Get__SP_KhachHang_TimKiem.sql
+Part        : 6.1 - SP_KhachHang_TimKiem
+Purpose     : SP tìm kiếm khách hàng theo nhiều tiêu chí
+
+Yêu cầu đề bài:
+- Tìm kiếm khách hàng theo HoTen, CCCD, DienThoai, GioiTinh
+- Hỗ trợ phân trang PageNumber, PageSize
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -43,3 +51,16 @@ BEGIN
     FETCH NEXT @PageSize ROWS ONLY;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: tìm khách hàng theo HoTen
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_KhachHang_TimKiem @HoTen = N'Phan', @PageSize = 5;
+

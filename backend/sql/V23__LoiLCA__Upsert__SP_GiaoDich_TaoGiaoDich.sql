@@ -1,8 +1,16 @@
--- =============================================================================
--- V23__LoiLCA__Upsert__SP_GiaoDich_TaoGiaoDich.sql
--- SP: dbo.SP_GiaoDich_TaoGiaoDich — tạo giao dịch và cập nhật số dư
--- Design: SP_DESIGN.md — V23 | Backend: POST /api/transactions
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410064 - Lê Công Anh Lợi
+File        : V23__LoiLCA__Upsert__SP_GiaoDich_TaoGiaoDich.sql
+Part        : 6.8 - SP_GiaoDich_TaoGiaoDich
+Purpose     : SP tạo giao dịch và cập nhật số dư
+
+Yêu cầu đề bài:
+- Design: SP_DESIGN.md — V23 | Backend: POST /api/transactions
+- Thêm cột MaTaiKhoanDich nếu chưa có
+- Tạo giao dịch credit/debit và cập nhật số dư tài khoản
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -144,3 +152,18 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: tạo giao dịch credit nhỏ trên tài khoản seed
+
+Cleanup: DELETE FROM dbo.GiaoDich WHERE MoTa = N'[TEST] Giao dich SP';
+===============================================================================
+*/
+
+-- DECLARE @TestAccountId INT = (SELECT TOP 1 MaTaiKhoan FROM dbo.TaiKhoan WHERE TrangThai = 'active' ORDER BY MaTaiKhoan);
+-- EXEC dbo.SP_GiaoDich_TaoGiaoDich @MaTaiKhoan = @TestAccountId, @LoaiGiaoDich = 'credit', @SoTien = 1000, @MoTa = N'[TEST] Giao dich SP', @DanhMuc = N'Thu nhap', @PhuongThucThanhToan = N'Tien mat';
+-- DELETE FROM dbo.GiaoDich WHERE MoTa = N'[TEST] Giao dich SP';
+

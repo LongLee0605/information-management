@@ -1,9 +1,16 @@
--- =============================================================================
--- V21__HuyTND__Upsert__SP_TaiKhoan_CapNhatTrangThai.sql
--- SP cập nhật trạng thái tài khoản (validated UPDATE)
--- Phụ thuộc: TaiKhoan (V6) + trigger TR_TaiKhoan_DongBangSoDu (V12)
--- Ghi chú: khi update sang 'inactive', trigger V12 tự đóng băng số dư
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410051 - Trần Nguyễn Đang Huy
+File        : V21__HuyTND__Upsert__SP_TaiKhoan_CapNhatTrangThai.sql
+Part        : 6.6 - SP_TaiKhoan_CapNhatTrangThai
+Purpose     : SP cập nhật trạng thái tài khoản (validated UPDATE)
+
+Yêu cầu đề bài:
+- Phụ thuộc: TaiKhoan (V6) + trigger TR_TaiKhoan_DongBangSoDu (V12)
+- Khi update sang inactive, trigger V12 tự đóng băng số dư
+- Validate trạng thái active/inactive
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -47,3 +54,18 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: cập nhật trạng thái tài khoản qua SP
+
+Cleanup: EXEC dbo.SP_TaiKhoan_CapNhatTrangThai @MaTaiKhoan = @TestAccountId, @TrangThai = 'active';
+===============================================================================
+*/
+
+-- DECLARE @TestAccountId INT = (SELECT TOP 1 MaTaiKhoan FROM dbo.TaiKhoan WHERE TrangThai = 'active' ORDER BY MaTaiKhoan);
+-- EXEC dbo.SP_TaiKhoan_CapNhatTrangThai @MaTaiKhoan = @TestAccountId, @TrangThai = 'inactive';
+-- EXEC dbo.SP_TaiKhoan_CapNhatTrangThai @MaTaiKhoan = @TestAccountId, @TrangThai = 'active';
+

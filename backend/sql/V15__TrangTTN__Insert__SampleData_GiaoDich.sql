@@ -1,7 +1,14 @@
--- =============================================================================
--- V15__TrangTTN__Insert__SampleData_GiaoDich.sql
--- Chèn dữ liệu mẫu vào bảng GiaoDich
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410138 - Trần Thị Ngọc Trang
+File        : V15__TrangTTN__Insert__SampleData_GiaoDich.sql
+Part        : 5.3 - Sample data GiaoDich
+Purpose     : Chèn dữ liệu mẫu vào bảng GiaoDich
+
+Yêu cầu đề bài:
+- Chèn giao dịch thu/chi mẫu cho các tài khoản seed
+===============================================================================
+*/
 
 USE QLTT;
 GO

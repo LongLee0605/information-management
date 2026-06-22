@@ -1,7 +1,15 @@
--- =============================================================================
--- V22__TrangTTN__Get__SP_GiaoDich_TimKiem.sql
--- SP tìm kiếm giao dịch theo nhiều tiêu chí
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410138 - Trần Thị Ngọc Trang
+File        : V22__TrangTTN__Get__SP_GiaoDich_TimKiem.sql
+Part        : 6.7 - SP_GiaoDich_TimKiem
+Purpose     : SP tìm kiếm giao dịch theo nhiều tiêu chí
+
+Yêu cầu đề bài:
+- Tìm kiếm giao dịch theo MaTaiKhoan, MaKhachHang, LoaiGiaoDich, khoảng ngày, danh mục, số tiền
+- Hỗ trợ phân trang PageNumber, PageSize
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -56,3 +64,16 @@ BEGIN
     FETCH NEXT @PageSize ROWS ONLY;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: tìm giao dịch theo MaKhachHang
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_GiaoDich_TimKiem @MaKhachHang = 1, @PageSize = 10;
+
