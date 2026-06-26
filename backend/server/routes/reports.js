@@ -154,12 +154,7 @@ router.get('/money-flow', async (req, res) => {
             const lookupKey = trimmedAccount || trimmedCif;
             const lookup = await req.pool.request()
                 .input('Lookup', sql.VarChar(20), lookupKey)
-                .query(`
-          SELECT TOP 1 MaTaiKhoan, MaKhachHang
-          FROM dbo.TaiKhoan
-          WHERE SoTaiKhoan = @Lookup OR CIF = @Lookup
-          ORDER BY LaTaiKhoanChinh DESC, MaTaiKhoan
-        `);
+                .execute('SP_TaiKhoan_TimTheoSoHoacCIF');
             if (lookup.recordset.length) {
                 accountId = String(lookup.recordset[0].MaTaiKhoan);
                 customerId = String(lookup.recordset[0].MaKhachHang);

@@ -58,3 +58,55 @@ GO
 CREATE NONCLUSTERED INDEX IX_TaiKhoan_CIF_MaKhachHang
     ON dbo.TaiKhoan (CIF, MaKhachHang);
 GO
+
+/*
+===============================================================================
+Create SP SP_TaiKhoan_LayCIFTheoKhachHang
+Purpose     : Tra CIF theo MaKhachHang khi mở tài khoản mới (POST /api/accounts)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_TaiKhoan_LayCIFTheoKhachHang', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_TaiKhoan_LayCIFTheoKhachHang;
+GO
+
+CREATE PROCEDURE dbo.SP_TaiKhoan_LayCIFTheoKhachHang
+    @MaKhachHang INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        tk.CIF
+    FROM dbo.TaiKhoan tk
+    WHERE tk.MaKhachHang = @MaKhachHang
+    ORDER BY tk.LaTaiKhoanChinh DESC, tk.MaTaiKhoan;
+END;
+GO
+
+/*
+===============================================================================
+Create SP SP_TaiKhoan_TimTheoSoHoacCIF
+Purpose     : Tra MaTaiKhoan, MaKhachHang theo số TK hoặc CIF (GET /api/reports/money-flow)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_TaiKhoan_TimTheoSoHoacCIF', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_TaiKhoan_TimTheoSoHoacCIF;
+GO
+
+CREATE PROCEDURE dbo.SP_TaiKhoan_TimTheoSoHoacCIF
+    @Lookup VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        tk.MaTaiKhoan,
+        tk.MaKhachHang
+    FROM dbo.TaiKhoan tk
+    WHERE tk.SoTaiKhoan = @Lookup
+       OR tk.CIF = @Lookup
+    ORDER BY tk.LaTaiKhoanChinh DESC, tk.MaTaiKhoan;
+END;
+GO

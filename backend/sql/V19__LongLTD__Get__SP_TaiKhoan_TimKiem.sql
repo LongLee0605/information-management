@@ -57,7 +57,11 @@ BEGIN
     WHERE
         (@MaKhachHang IS NULL OR v.MaKhachHang = @MaKhachHang)
         AND (@CIF IS NULL OR v.CIF = @CIF)
-        AND (@SoTaiKhoan IS NULL OR v.SoTaiKhoan = @SoTaiKhoan)
+        AND (
+            @SoTaiKhoan IS NULL
+            OR v.SoTaiKhoan = @SoTaiKhoan
+            OR v.CIF = @SoTaiKhoan
+        )
         AND (@LoaiTaiKhoan IS NULL OR v.LoaiTaiKhoan = @LoaiTaiKhoan)
         AND (@TrangThai IS NULL OR v.TrangThai = @TrangThai)
         AND (@NganHang IS NULL OR v.NganHang LIKE N'%' + @NganHang + N'%')

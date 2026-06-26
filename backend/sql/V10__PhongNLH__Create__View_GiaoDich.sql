@@ -41,3 +41,42 @@ FROM dbo.GiaoDich gd
 INNER JOIN dbo.TaiKhoan tk ON tk.MaTaiKhoan = gd.MaTaiKhoan
 INNER JOIN dbo.KhachHang kh ON kh.MaKhachHang = tk.MaKhachHang;
 GO
+
+/*
+===============================================================================
+Create SP SP_GiaoDich_LayTheoMa
+Purpose     : Lấy chi tiết giao dịch theo MaGiaoDich (GET/POST /api/transactions/:id)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_GiaoDich_LayTheoMa', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_GiaoDich_LayTheoMa;
+GO
+
+CREATE PROCEDURE dbo.SP_GiaoDich_LayTheoMa
+    @MaGiaoDich INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        v.MaGiaoDich,
+        v.NgayGiaoDich,
+        v.LoaiGiaoDich,
+        v.SoTien,
+        v.MoTa,
+        v.DanhMuc,
+        v.PhuongThucThanhToan,
+        v.MaTaiKhoan,
+        v.SoTaiKhoan,
+        v.CIF,
+        v.LoaiTaiKhoan,
+        v.NganHang,
+        v.MaKhachHang,
+        v.HoTen,
+        v.DienThoai,
+        v.Email
+    FROM dbo.VW_GiaoDich v
+    WHERE v.MaGiaoDich = @MaGiaoDich;
+END;
+GO

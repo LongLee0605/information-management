@@ -88,3 +88,39 @@ GO
 CREATE NONCLUSTERED INDEX IX_AuditLog_TenBang_MaBanGhi
     ON dbo.AuditLog (TenBang, MaBanGhi);
 GO
+
+/*
+===============================================================================
+Create SP SP_KhachHang_LayTheoMa
+Purpose     : Lấy chi tiết khách hàng theo MaKhachHang (GET/POST/PUT /api/customers/:id)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_KhachHang_LayTheoMa', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_KhachHang_LayTheoMa;
+GO
+
+CREATE PROCEDURE dbo.SP_KhachHang_LayTheoMa
+    @MaKhachHang INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        kh.MaKhachHang,
+        kh.HoTen,
+        kh.CCCD,
+        kh.NgaySinh,
+        kh.GioiTinh,
+        kh.DienThoai,
+        kh.Email,
+        kh.DiaChi,
+        kh.NoiLamViec,
+        kh.TinhTrangHonNhan,
+        kh.HocVan,
+        kh.ThuNhapTBThang,
+        kh.IsActive
+    FROM dbo.KhachHang kh
+    WHERE kh.MaKhachHang = @MaKhachHang;
+END;
+GO
