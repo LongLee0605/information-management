@@ -9,12 +9,19 @@ Yêu cầu đề bài:
 - Mở tài khoản payment hoặc savings theo CIF
 - Mỗi khách hàng tối đa 1 tài khoản/loại
 - Tự sinh số tài khoản unique
+- Trigger TR_TaiKhoan_AuditLog ghi audit khi mở tài khoản (phụ thuộc AuditLog V5)
 ===============================================================================
 */
 
 USE QLTT;
 GO
 
+/*
+===============================================================================
+Create procedure SP_TaiKhoan_MoTaiKhoan
+Purpose     : SP mở tài khoản mới cho khách hàng theo CIF
+===============================================================================
+*/
 IF OBJECT_ID('dbo.SP_TaiKhoan_MoTaiKhoa', 'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_TaiKhoan_MoTaiKhoa;
 GO
@@ -189,6 +196,34 @@ BEGIN
             ROLLBACK TRANSACTION;
         THROW;
     END CATCH;
+END;
+GO
+
+/*
+===============================================================================
+Create trigger TR_TaiKhoan_AuditLog
+Purpose     : Ghi AuditLog khi INSERT tài khoản mới
+===============================================================================
+*/
+IF OBJECT_ID('dbo.TR_TaiKhoan_AuditLog', 'TR') IS NOT NULL
+    DROP TRIGGER dbo.TR_TaiKhoan_AuditLog;
+GO
+
+CREATE TRIGGER dbo.TR_TaiKhoan_AuditLog
+ON dbo.TaiKhoan
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.AuditLog (TenBang, MaBanGhi, HanhDong, NoiDung, NguoiThucHien)
+    SELECT
+        'TaiKhoan',
+        i.MaTaiKhoan,
+        'INSERT',
+        N'Mo tai khoan: ' + i.SoTaiKhoan + N' (' + i.LoaiTaiKhoan + N', CIF ' + i.CIF + N')',
+        SUSER_SNAME()
+    FROM inserted i;
 END;
 GO
 

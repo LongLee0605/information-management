@@ -46,6 +46,7 @@ BEGIN
         AND (@CCCD      IS NULL OR kh.CCCD      = @CCCD)
         AND (@DienThoai IS NULL OR kh.DienThoai = @DienThoai)
         AND (@GioiTinh  IS NULL OR kh.GioiTinh  = @GioiTinh)
+        AND kh.IsActive = 1
     ORDER BY kh.HoTen
     OFFSET (@PageNumber - 1) * @PageSize ROWS
     FETCH NEXT @PageSize ROWS ONLY;
