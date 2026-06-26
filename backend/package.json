@@ -12,6 +12,8 @@
     "dev:prod": "cross-env APP_ENV=production node server/index.js",
     "db:migrate": "cross-env APP_ENV=development node scripts/migrate.js",
     "db:migrate:prod": "cross-env APP_ENV=production node scripts/migrate.js",
+    "db:reset": "cross-env APP_ENV=development node scripts/reset-db.js",
+    "db:reset:prod": "cross-env APP_ENV=production node scripts/reset-db.js",
     "db:up": "docker compose up -d sqlserver",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f sqlserver",
