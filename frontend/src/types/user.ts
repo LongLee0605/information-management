@@ -1,4 +1,5 @@
 export type Gender = 'male' | 'female';
+export type CustomerTier = 'Diamond' | 'Gold' | 'Silver';
 export interface User {
     id: string;
     avatar: string;
@@ -13,6 +14,7 @@ export interface User {
     maritalStatus: string;
     education: string;
     monthlyIncomeAvg: number;
+    tier?: CustomerTier | null;
 }
 export interface CreateUserInput {
     citizenId: string;
