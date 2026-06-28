@@ -8,8 +8,10 @@ import { TabList } from '@/components/molecules/TabList';
 import { ReportDateFilter } from '@/components/molecules/ReportDateFilter';
 import { UserPageShell } from '@/components/templates/UserPageShell';
 import { getEffectiveAppDateRange, REPORT_TABS, PIE_COLORS, type ReportTab } from '@/constants';
+import { getAvgBalance } from '@/services/financeService';
 import { calculateFinanceSummary, filterMonthlyByDateRange, formatDateRangeLabel, transformBreakdownToPieChart, transformMonthlyToLineChart, } from '@/utils/chartTransformers';
-import { formatCitizenId } from '@/utils';
+import { formatCitizenId, formatCurrency } from '@/utils';
+import type { AvgBalanceRecord } from '@/types';
 const DEFAULT_RANGE = getEffectiveAppDateRange();
 const DEFAULT_FROM = DEFAULT_RANGE.fromDate;
 const DEFAULT_TO = DEFAULT_RANGE.toDate;
@@ -24,6 +26,7 @@ export default function ReportsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [fromDate, setFromDate] = useState<string>(DEFAULT_FROM);
     const [toDate, setToDate] = useState<string>(DEFAULT_TO);
+    const [avgBalance, setAvgBalance] = useState<AvgBalanceRecord | null>(null);
     const tabParam = searchParams.get('tab');
     const activeTab: ReportTab = isValidReportTab(tabParam) ? tabParam : 'charts';
     useCanonicalUserRoute();
@@ -42,6 +45,20 @@ export default function ReportsPage() {
             setContextUserId(userId);
         }
     }, [userId, setContextUserId]);
+    useEffect(() => {
+        if (!userId) {
+            setAvgBalance(null);
+            return;
+        }
+        const month = Number(fromDate.slice(5, 7));
+        const year = Number(fromDate.slice(0, 4));
+        if (!month || !year) {
+            return;
+        }
+        getAvgBalance(userId, month, year)
+            .then((rows) => setAvgBalance(rows[0] ?? null))
+            .catch(() => setAvgBalance(null));
+    }, [userId, fromDate]);
     const handleApplyDateFilter = useCallback((nextFrom: string, nextTo: string) => {
         setFromDate(nextFrom);
         setToDate(nextTo);
@@ -55,6 +72,26 @@ export default function ReportsPage() {
             refetch();
             refetchFinance();
         }}>
+      {avgBalance && (
+        <div className="dashboard-card mb-4 p-4">
+          <p className="text-sm font-semibold text-foreground">Số dư bình quân tháng</p>
+          <dl className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-foreground-soft">CIF</dt>
+              <dd className="font-medium">{avgBalance.cif}</dd>
+            </div>
+            <div>
+              <dt className="text-foreground-soft">Tháng/năm</dt>
+              <dd className="font-medium">{avgBalance.monthYear}</dd>
+            </div>
+            <div>
+              <dt className="text-foreground-soft">AvgBalance</dt>
+              <dd className="font-medium">{formatCurrency(avgBalance.avgBalance)}</dd>
+            </div>
+          </dl>
+        </div>
+      )}
+
       <TabList tabs={REPORT_TABS} activeTab={activeTab} onTabChange={handleTabChange}/>
 
       <div role="tabpanel">

@@ -184,6 +184,19 @@
 
 ## NHÓM GIAO DỊCH
 
+### V7__HuyTND__Create__Table_GiaoDich
+- **File metadata (root):** giữ nguyên — `Part 2.3 - Tạo bảng GiaoDich` (khớp báo cáo)
+- **Bảng chính:** `dbo.GiaoDich`
+
+*Phần bổ sung trong cùng file (block comment riêng):*
+
+#### SoDuBinhQuanThang
+- **Bảng:** `dbo.SoDuBinhQuanThang`
+- **Cột:** `CIF`, `ThangNam` (MM/YYYY), `AvgBalance`, `MaKhachHang`, `NgayTinh`
+- **UQ:** `(CIF, ThangNam)` — job upsert idempotent
+
+---
+
 ### V22__TrangTTN__Get__SP_GiaoDich_TimKiem
 - **SP:** `dbo.sp_GiaoDich_TimKiem`
 - **Sử dụng:** View `dbo.VW_GiaoDich`
@@ -199,6 +212,13 @@
   | @PageNumber | INT |
   | @PageSize | INT |
 - **Output:** Danh sách từ `VW_GiaoDich` + `TotalRow`
+
+#### SP_GiaoDich_LaySoDuBinhQuan *(block bổ sung trong cùng file V22)*
+- **SP:** `dbo.SP_GiaoDich_LaySoDuBinhQuan`
+- **Backend:** `GET /api/reports/avg-balance`
+- **Input:** `@MaKhachHang INT`, `@ThangNam VARCHAR(7)` NULL = tất cả tháng
+- **Output:** `CIF`, `ThangNam`, `AvgBalance`
+- **Validate:** KH không tồn tại → THROW 50060
 
 ---
 
@@ -225,6 +245,13 @@
 - **Output:** `{ MaGiaoDich, NgayGiaoDich, LoaiGiaoDich, SoTien, MaTaiKhoanDich, SoDuSauGiaoDich }`
 - **Không có UPDATE/DELETE** (giao dịch bất biến)
 - **Lưu ý:** Chuyển khoản FE tạo 2 lần gọi — debit (có `MaTaiKhoanDich`) + credit (không có đích)
+
+#### SP_GiaoDich_TinhSoDuBinhQuan *(block bổ sung trong cùng file V23)*
+- **SP:** `dbo.SP_GiaoDich_TinhSoDuBinhQuan` — job tính số dư bình quân
+- **Input:** `@Thang INT`, `@Nam INT` (default tháng/năm hiện tại)
+- **Logic:** CURSOR từng KH có TK chính active → tính trung bình số dư cuối ngày trong tháng từ `GiaoDich` → MERGE `SoDuBinhQuanThang`
+- **Edge case:** KH không có TK chính → bỏ qua
+- **Demo:** V27 `EXEC` sau `SP_TaiKhoan_DongBoSoDu` cho tháng 06/2026
 
 ---
 
@@ -312,7 +339,7 @@
 - **Mục đích:** Dữ liệu mẫu mở rộng sau V15
 - **Phần 1 `[TRUYVET]`:** Chuỗi F1–F3 (2–4 người/cấp), tháng 4/2025, có `MaTaiKhoanDich`
 - **Phần 2 `[DEMO-TXN]`:** ~50 giao dịch/KH, rải 2025-01-01 → GETDATE()
-- **Cuối script:** `EXEC dbo.SP_TaiKhoan_DongBoSoDu`
+- **Cuối script:** `EXEC dbo.SP_TaiKhoan_DongBoSoDu` + `EXEC dbo.SP_GiaoDich_TinhSoDuBinhQuan @Thang=6, @Nam=2026`
 
 ---
 

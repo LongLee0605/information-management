@@ -77,3 +77,36 @@ Cleanup: không cần (read-only)
 
 -- EXEC dbo.SP_GiaoDich_TimKiem @MaKhachHang = 1, @PageSize = 10;
 
+/*
+===============================================================================
+Create SP SP_GiaoDich_LaySoDuBinhQuan
+Purpose     : Doc ket qua job so du binh quan theo khach hang
+Backend     : GET /api/reports/avg-balance
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_GiaoDich_LaySoDuBinhQuan', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_GiaoDich_LaySoDuBinhQuan;
+GO
+
+CREATE PROCEDURE dbo.SP_GiaoDich_LaySoDuBinhQuan
+    @MaKhachHang    INT,
+    @ThangNam       VARCHAR(7) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang)
+        THROW 50060, N'Khong tim thay KhachHang.', 1;
+
+    SELECT
+        sb.CIF,
+        sb.ThangNam,
+        sb.AvgBalance
+    FROM dbo.SoDuBinhQuanThang sb
+    WHERE sb.MaKhachHang = @MaKhachHang
+      AND (@ThangNam IS NULL OR sb.ThangNam = @ThangNam)
+    ORDER BY sb.ThangNam DESC;
+END;
+GO
+

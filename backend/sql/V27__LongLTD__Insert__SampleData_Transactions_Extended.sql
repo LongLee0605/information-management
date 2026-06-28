@@ -252,3 +252,6 @@ GO
 
 EXEC dbo.SP_TaiKhoan_DongBoSoDu;
 GO
+
+EXEC dbo.SP_GiaoDich_TinhSoDuBinhQuan @Thang = 6, @Nam = 2026;
+GO

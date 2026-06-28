@@ -10,6 +10,7 @@ router.get('/', (_req, res) => {
         monthlyChart: '/api/reports/monthly-chart',
         pieChart: '/api/reports/pie-chart',
         moneyFlow: '/api/reports/money-flow',
+        avgBalance: '/api/reports/avg-balance',
         docs: 'Thêm ?docs=1 vào sub-route để xem hướng dẫn tham số',
     });
 });
@@ -172,6 +173,51 @@ router.get('/money-flow', async (req, res) => {
             .input('SoTienNguong', sql.Decimal(18, 2), amountThreshold ? Number(amountThreshold) : null)
             .execute('SP_TruyVetDongTien');
 
+        res.json(ensureRecordset(result.recordset));
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/avg-balance', async (req, res) => {
+    try {
+        const { customerId, month, year } = req.query;
+        if (wantsApiDocs(req) || !customerId) {
+            sendApiDocs(res, {
+                message: 'Số dư bình quân tháng — cần customerId',
+                example: '/api/reports/avg-balance?customerId=1&month=6&year=2026',
+                params: {
+                    customerId: 'MaKhachHang (bắt buộc)',
+                    month: 'Tháng 1–12 (tùy chọn, lọc ThangNam)',
+                    year: 'Năm, ví dụ 2026 (tùy chọn, dùng cùng month)',
+                },
+            });
+            return;
+        }
+        const parsedCustomerId = parsePositiveInt(customerId);
+        if (parsedCustomerId === null) {
+            res.status(400).json({ error: 'customerId phải là số nguyên dương.' });
+            return;
+        }
+        let thangNam = null;
+        if (month && year) {
+            const parsedMonth = Number(month);
+            const parsedYear = Number(year);
+            if (!Number.isInteger(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+                res.status(400).json({ error: 'month phải từ 1 đến 12.' });
+                return;
+            }
+            if (!Number.isInteger(parsedYear) || parsedYear < 1900) {
+                res.status(400).json({ error: 'year không hợp lệ.' });
+                return;
+            }
+            thangNam = `${String(parsedMonth).padStart(2, '0')}/${parsedYear}`;
+        }
+        const result = await req.pool.request()
+            .input('MaKhachHang', sql.Int, parsedCustomerId)
+            .input('ThangNam', sql.VarChar(7), thangNam)
+            .execute('SP_GiaoDich_LaySoDuBinhQuan');
         res.json(ensureRecordset(result.recordset));
     }
     catch (err) {

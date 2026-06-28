@@ -12,6 +12,7 @@ export const API_PATHS = {
         pieChart: '/api/reports/pie-chart',
         moneyFlow: '/api/reports/money-flow',
         overview: '/api/reports/overview',
+        avgBalance: '/api/reports/avg-balance',
     },
 } as const;
 export function formatApiError(error: unknown): string {

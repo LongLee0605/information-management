@@ -1,5 +1,5 @@
 import api, { API_PATHS } from '@/lib/api';
-import type { MonthlyFinance, SourceBreakdown, UserFinance } from '@/types';
+import type { AvgBalanceRecord, MonthlyFinance, SourceBreakdown, UserFinance } from '@/types';
 import { APP_YEARS, getEffectiveAppDateRange } from '@/utils/demoDate';
 
 export interface FinanceDateRange {
@@ -115,4 +115,25 @@ export async function getUserFinance(
     ]);
 
     return { userId, monthly, breakdown };
+}
+
+interface ApiAvgBalance {
+    CIF: string;
+    ThangNam: string;
+    AvgBalance: number;
+}
+
+export async function getAvgBalance(
+    userId: string,
+    month: number,
+    year: number,
+): Promise<AvgBalanceRecord[]> {
+    const { data } = await api.get<ApiAvgBalance[]>(API_PATHS.reports.avgBalance, {
+        params: { customerId: userId, month, year },
+    });
+    return data.map((row) => ({
+        cif: row.CIF,
+        monthYear: row.ThangNam,
+        avgBalance: row.AvgBalance,
+    }));
 }
