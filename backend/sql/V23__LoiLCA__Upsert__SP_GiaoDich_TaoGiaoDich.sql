@@ -98,7 +98,7 @@ BEGIN
 
         IF @LoaiGiaoDich = 'debit'
         BEGIN
-            DECLARE @SoDuKhaDung DECIMAL(18,2) = @SoDuHienTai - @SoDuDongBang;
+            DECLARE @SoDuKhaDung DECIMAL(18,2) = dbo.FN_TaiKhoan_TinhSoDuKhaDung(@SoDuHienTai, @SoDuDongBang);
             IF @SoDuKhaDung < @SoTien
                 THROW 50044, N'So du kha dung khong du de thuc hien giao dich.', 1;
         END;

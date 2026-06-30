@@ -59,7 +59,7 @@ export function TransactionDetailModal({ transaction, user, onClose, }: Transact
 
         <div className="px-6 py-2">
           <DetailRow label="Ngày giao dịch" value={formatDate(transaction.date)}/>
-          <DetailRow label="Loại" value={<TransactionTypeBadge type={transaction.type}/>}/>
+          <DetailRow label="Loại" value={<TransactionTypeBadge type={transaction.type} label={transaction.typeLabel}/>}/>
           <DetailRow label="Số tiền" value={<span className="text-base font-bold text-foreground">
                 {formatCurrency(transaction.amount)}
               </span>}/>

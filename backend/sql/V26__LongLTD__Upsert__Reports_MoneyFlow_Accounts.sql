@@ -362,6 +362,13 @@ END;
 GO
 
 -- SP: dbo.SP_TaiKhoan_DongBoSoDu
+/*
+===============================================================================
+Update SP SP_TaiKhoan_DongBoSoDu
+Purpose     : Dong bo so du tung tai khoan bang Cursor (sau seed giao dich)
+Backend     : EXEC trong V27 sau migrate
+===============================================================================
+*/
 IF OBJECT_ID('dbo.SP_TaiKhoan_DongBoSoDu', 'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_TaiKhoan_DongBoSoDu;
 GO
@@ -371,51 +378,70 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    ;WITH SoDuKhoiTao AS (
-        SELECT * FROM (VALUES
-            (1,  37900000.00),
-            (2,  24635000.00),
-            (3, 166000000.00),
-            (4,  85000000.00),
-            (5,  52000000.00),
-            (6,  12500000.00),
-            (7,  45000000.00),
-            (8,  30000000.00),
-            (9,  28000000.00),
-            (10, 18500000.00),
-            (11, 10000000.00),
-            (12,  9800000.00),
-            (13, 32000000.00),
-            (14, 15000000.00),
-            (15, 210000000.00),
-            (16, 120000000.00)
-        ) AS v(MaTaiKhoan, SoDuKhoiTao)
-    ),
-    BienDong AS (
-        SELECT
-            gd.MaTaiKhoan,
-            SUM(CASE WHEN gd.LoaiGiaoDich = 'credit' THEN gd.SoTien ELSE -gd.SoTien END) AS TongBienDong
-        FROM dbo.GiaoDich gd
-        GROUP BY gd.MaTaiKhoan
-    ),
-    TinhSoDu AS (
-        SELECT
-            tk.MaTaiKhoan,
-            k.SoDuKhoiTao + ISNULL(bd.TongBienDong, 0) AS SoDuMoi
+    DECLARE @MaTaiKhoan     INT;
+    DECLARE @SoDuKhoiTao    DECIMAL(18, 2);
+    DECLARE @TongBienDong   DECIMAL(18, 2);
+    DECLARE @SoDuMoi        DECIMAL(18, 2);
+    DECLARE @TrangThai      VARCHAR(10);
+    DECLARE @SoDuDongBang   DECIMAL(18, 2);
+
+    DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT tk.MaTaiKhoan
         FROM dbo.TaiKhoan tk
-        INNER JOIN SoDuKhoiTao k ON k.MaTaiKhoan = tk.MaTaiKhoan
-        LEFT JOIN BienDong bd ON bd.MaTaiKhoan = tk.MaTaiKhoan
-    )
-    UPDATE tk
-    SET
-        tk.SoDuHienTai = ts.SoDuMoi,
-        tk.SoDuDongBang = CASE
-            WHEN tk.TrangThai = 'inactive' THEN ts.SoDuMoi
-            WHEN tk.SoDuDongBang > ts.SoDuMoi THEN ts.SoDuMoi
-            ELSE tk.SoDuDongBang
-        END
-    FROM dbo.TaiKhoan tk
-    INNER JOIN TinhSoDu ts ON ts.MaTaiKhoan = tk.MaTaiKhoan;
+        INNER JOIN (
+            SELECT * FROM (VALUES
+                (1,  37900000.00), (2,  24635000.00), (3, 166000000.00), (4,  85000000.00),
+                (5,  52000000.00), (6,  12500000.00), (7,  45000000.00), (8,  30000000.00),
+                (9,  28000000.00), (10, 18500000.00), (11, 10000000.00), (12,  9800000.00),
+                (13, 32000000.00), (14, 15000000.00), (15, 210000000.00), (16, 120000000.00)
+            ) AS v(MaTaiKhoan, SoDuKhoiTao)
+        ) seed ON seed.MaTaiKhoan = tk.MaTaiKhoan;
+
+    OPEN cur;
+    FETCH NEXT FROM cur INTO @MaTaiKhoan;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SELECT @SoDuKhoiTao = seed.SoDuKhoiTao
+        FROM (
+            SELECT * FROM (VALUES
+                (1,  37900000.00), (2,  24635000.00), (3, 166000000.00), (4,  85000000.00),
+                (5,  52000000.00), (6,  12500000.00), (7,  45000000.00), (8,  30000000.00),
+                (9,  28000000.00), (10, 18500000.00), (11, 10000000.00), (12,  9800000.00),
+                (13, 32000000.00), (14, 15000000.00), (15, 210000000.00), (16, 120000000.00)
+            ) AS v(MaTaiKhoan, SoDuKhoiTao)
+        ) seed
+        WHERE seed.MaTaiKhoan = @MaTaiKhoan;
+
+        SELECT @TongBienDong = ISNULL(SUM(
+            CASE WHEN gd.LoaiGiaoDich = 'credit' THEN gd.SoTien ELSE -gd.SoTien END
+        ), 0)
+        FROM dbo.GiaoDich gd
+        WHERE gd.MaTaiKhoan = @MaTaiKhoan;
+
+        SET @SoDuMoi = @SoDuKhoiTao + @TongBienDong;
+
+        SELECT
+            @TrangThai    = tk.TrangThai,
+            @SoDuDongBang = tk.SoDuDongBang
+        FROM dbo.TaiKhoan tk
+        WHERE tk.MaTaiKhoan = @MaTaiKhoan;
+
+        UPDATE dbo.TaiKhoan
+        SET
+            SoDuHienTai = @SoDuMoi,
+            SoDuDongBang = CASE
+                WHEN @TrangThai = 'inactive' THEN @SoDuMoi
+                WHEN @SoDuDongBang > @SoDuMoi THEN @SoDuMoi
+                ELSE @SoDuDongBang
+            END
+        WHERE MaTaiKhoan = @MaTaiKhoan;
+
+        FETCH NEXT FROM cur INTO @MaTaiKhoan;
+    END;
+
+    CLOSE cur;
+    DEALLOCATE cur;
 END;
 GO
 

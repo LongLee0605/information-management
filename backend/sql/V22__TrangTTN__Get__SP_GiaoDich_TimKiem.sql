@@ -37,6 +37,7 @@ BEGIN
         gd.MaGiaoDich,
         gd.NgayGiaoDich,
         gd.LoaiGiaoDich,
+        dbo.FN_GiaoDich_LayTenLoaiGiaoDich(gd.LoaiGiaoDich) AS TenLoaiGiaoDich,
         gd.SoTien,
         gd.MoTa,
         gd.DanhMuc,

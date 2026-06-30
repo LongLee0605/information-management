@@ -80,3 +80,26 @@ Cleanup: UPDATE dbo.TaiKhoan SET TrangThai = 'active', SoDuHienTai = @SavedBalan
 -- SELECT MaTaiKhoan, TrangThai, SoDuHienTai, SoDuDongBang FROM dbo.TaiKhoan WHERE MaTaiKhoan = @TestAccountId;
 --
 -- UPDATE dbo.TaiKhoan SET TrangThai = 'active', SoDuHienTai = @SavedBalance, SoDuDongBang = 0 WHERE MaTaiKhoan = @TestAccountId;
+
+/*
+===============================================================================
+Create FN FN_TaiKhoan_TinhSoDuKhaDung
+Purpose     : Tinh so du kha dung (SoDuHienTai - SoDuDongBang)
+Backend     : Dung trong SP_GiaoDich_TaoGiaoDich (V23)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.FN_TaiKhoan_TinhSoDuKhaDung', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.FN_TaiKhoan_TinhSoDuKhaDung;
+GO
+
+CREATE FUNCTION dbo.FN_TaiKhoan_TinhSoDuKhaDung(
+    @SoDuHienTai  DECIMAL(18, 2),
+    @SoDuDongBang DECIMAL(18, 2)
+)
+RETURNS DECIMAL(18, 2)
+AS
+BEGIN
+    RETURN ISNULL(@SoDuHienTai, 0) - ISNULL(@SoDuDongBang, 0);
+END;
+GO
