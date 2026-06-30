@@ -138,7 +138,7 @@ export function TransactionsPanel({ transactions, loading, users, lockedUserId, 
         {
             key: 'type',
             header: 'Loại',
-            render: (tx: TransactionWithUser) => <TransactionTypeBadge type={tx.type}/>,
+            render: (tx: TransactionWithUser) => <TransactionTypeBadge type={tx.type} label={tx.typeLabel}/>,
         },
         {
             key: 'method',

@@ -10,6 +10,7 @@ interface ApiTransaction {
     SoTaiKhoan: string;
     NganHang: string;
     LoaiGiaoDich: string;
+    TenLoaiGiaoDich?: string | null;
     SoTien: number;
     NgayGiaoDich: string;
     MoTa: string | null;
@@ -25,6 +26,7 @@ function mapTransaction(row: ApiTransaction): TransactionWithUser {
         userId: String(row.MaKhachHang),
         date: row.NgayGiaoDich ? row.NgayGiaoDich.split('T')[0] : '',
         type: row.LoaiGiaoDich as TransactionType,
+        typeLabel: row.TenLoaiGiaoDich ?? undefined,
         amount: row.SoTien,
         description: row.MoTa ?? '',
         category: row.DanhMuc ?? '',

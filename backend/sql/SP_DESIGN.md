@@ -246,6 +246,22 @@
 - **Không có UPDATE/DELETE** (giao dịch bất biến)
 - **Lưu ý:** Chuyển khoản FE tạo 2 lần gọi — debit (có `MaTaiKhoanDich`) + credit (không có đích)
 
+#### FN_TaiKhoan_TinhSoDuKhaDung *(block bổ sung trong V12)*
+- **Function:** `dbo.FN_TaiKhoan_TinhSoDuKhaDung`
+- **Input:** `@SoDuHienTai`, `@SoDuDongBang`
+- **Output:** `SoDuHienTai - SoDuDongBang`
+- **Dùng trong:** `SP_GiaoDich_TaoGiaoDich` — kiểm tra số dư khả dụng khi ghi nợ
+
+#### FN_GiaoDich_LayTenLoaiGiaoDich *(block bổ sung trong V10)*
+- **Function:** `dbo.FN_GiaoDich_LayTenLoaiGiaoDich`
+- **Input:** `@LoaiGiaoDich` (`credit` / `debit`)
+- **Output:** `Ghi co` / `Ghi no`
+- **Dùng trong:** `VW_GiaoDich`, `SP_GiaoDich_TimKiem`, `SP_GiaoDich_LayTheoMa` — cột `TenLoaiGiaoDich`
+
+#### SP_TaiKhoan_DongBoSoDu — Cursor *(V26)*
+- **Cursor:** duyệt từng `MaTaiKhoan` có seed số dư khởi tạo → tính biến động từ `GiaoDich` → `UPDATE SoDuHienTai`
+- **Gọi sau:** V27 seed extended transactions
+
 #### SP_GiaoDich_TinhSoDuBinhQuan *(block bổ sung trong cùng file V23)*
 - **SP:** `dbo.SP_GiaoDich_TinhSoDuBinhQuan` — job tính số dư bình quân
 - **Input:** `@Thang INT`, `@Nam INT` (default tháng/năm hiện tại)
