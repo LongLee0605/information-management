@@ -1,8 +1,16 @@
--- =============================================================================
--- V23__LoiLCA__Upsert__SP_GiaoDich_TaoGiaoDich.sql
--- SP: dbo.SP_GiaoDich_TaoGiaoDich — tạo giao dịch và cập nhật số dư
--- Design: SP_DESIGN.md — V23 | Backend: POST /api/transactions
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410064 - Lê Công Anh Lợi
+File        : V23__LoiLCA__Upsert__SP_GiaoDich_TaoGiaoDich.sql
+Part        : 6.8 - SP_GiaoDich_TaoGiaoDich
+Purpose     : SP tạo giao dịch và cập nhật số dư
+
+Yêu cầu đề bài:
+- Design: SP_DESIGN.md — V23 | Backend: POST /api/transactions
+- Thêm cột MaTaiKhoanDich nếu chưa có
+- Tạo giao dịch credit/debit và cập nhật số dư tài khoản
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -144,3 +152,133 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: tạo giao dịch credit nhỏ trên tài khoản seed
+
+Cleanup: DELETE FROM dbo.GiaoDich WHERE MoTa = N'[TEST] Giao dich SP';
+===============================================================================
+*/
+
+-- DECLARE @TestAccountId INT = (SELECT TOP 1 MaTaiKhoan FROM dbo.TaiKhoan WHERE TrangThai = 'active' ORDER BY MaTaiKhoan);
+-- EXEC dbo.SP_GiaoDich_TaoGiaoDich @MaTaiKhoan = @TestAccountId, @LoaiGiaoDich = 'credit', @SoTien = 1000, @MoTa = N'[TEST] Giao dich SP', @DanhMuc = N'Thu nhap', @PhuongThucThanhToan = N'Tien mat';
+-- DELETE FROM dbo.GiaoDich WHERE MoTa = N'[TEST] Giao dich SP';
+
+/*
+===============================================================================
+Create SP SP_GiaoDich_TinhSoDuBinhQuan
+Purpose     : Job tinh so du binh quan thang theo TK chinh (dua tren giao dich)
+Backend     : EXEC thu cong hoac sau migrate V27
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_GiaoDich_TinhSoDuBinhQuan', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_GiaoDich_TinhSoDuBinhQuan;
+GO
+
+CREATE PROCEDURE dbo.SP_GiaoDich_TinhSoDuBinhQuan
+    @Thang  INT = NULL,
+    @Nam    INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @Thang IS NULL SET @Thang = MONTH(SYSDATETIME());
+    IF @Nam IS NULL SET @Nam = YEAR(SYSDATETIME());
+
+    DECLARE @MonthStart     DATE = DATEFROMPARTS(@Nam, @Thang, 1);
+    DECLARE @DaysInMonth    INT = DAY(EOMONTH(@MonthStart));
+    DECLARE @ThangNam       VARCHAR(7) = RIGHT('0' + CAST(@Thang AS VARCHAR(2)), 2)
+                                   + '/' + CAST(@Nam AS VARCHAR(4));
+
+    DECLARE @MaKhachHang    INT;
+    DECLARE @MaTaiKhoan     INT;
+    DECLARE @CIF            VARCHAR(20);
+    DECLARE @SoDuKhoiTao    DECIMAL(18, 2);
+    DECLARE @SoDuDauThang   DECIMAL(18, 2);
+    DECLARE @Day            INT;
+    DECLARE @DayEnd         DATETIME2(0);
+    DECLARE @SoDuCuoiNgay   DECIMAL(18, 2);
+    DECLARE @TongSoDu       DECIMAL(18, 2);
+    DECLARE @AvgBalance     DECIMAL(18, 2);
+
+    DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT tk.MaKhachHang, tk.MaTaiKhoan, tk.CIF
+        FROM dbo.TaiKhoan tk
+        WHERE tk.LaTaiKhoanChinh = 1
+          AND tk.TrangThai = 'active';
+
+    OPEN cur;
+    FETCH NEXT FROM cur INTO @MaKhachHang, @MaTaiKhoan, @CIF;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @SoDuKhoiTao = NULL;
+
+        SELECT @SoDuKhoiTao = ISNULL(v.SoDuKhoiTao, 0)
+        FROM (VALUES
+            (1,  37900000.00), (2,  24635000.00), (3, 166000000.00), (4,  85000000.00),
+            (5,  52000000.00), (6,  12500000.00), (7,  45000000.00), (8,  30000000.00),
+            (9,  28000000.00), (10, 18500000.00), (11, 10000000.00), (12,  9800000.00),
+            (13, 32000000.00), (14, 15000000.00), (15, 210000000.00), (16, 120000000.00)
+        ) AS v(MaTaiKhoan, SoDuKhoiTao)
+        WHERE v.MaTaiKhoan = @MaTaiKhoan;
+
+        IF @SoDuKhoiTao IS NULL
+            SET @SoDuKhoiTao = 0;
+
+        SELECT @SoDuDauThang = @SoDuKhoiTao + ISNULL(SUM(
+            CASE WHEN gd.LoaiGiaoDich = 'credit' THEN gd.SoTien ELSE -gd.SoTien END
+        ), 0)
+        FROM dbo.GiaoDich gd
+        WHERE gd.MaTaiKhoan = @MaTaiKhoan
+          AND gd.NgayGiaoDich < @MonthStart;
+
+        SET @Day = 1;
+        SET @TongSoDu = 0;
+
+        WHILE @Day <= @DaysInMonth
+        BEGIN
+            SET @DayEnd = CAST(DATEFROMPARTS(@Nam, @Thang, @Day) AS DATETIME2(0));
+            SET @DayEnd = DATEADD(DAY, 1, @DayEnd);
+            SET @DayEnd = DATEADD(SECOND, -1, @DayEnd);
+
+            SELECT @SoDuCuoiNgay = @SoDuDauThang + ISNULL(SUM(
+                CASE WHEN gd.LoaiGiaoDich = 'credit' THEN gd.SoTien ELSE -gd.SoTien END
+            ), 0)
+            FROM dbo.GiaoDich gd
+            WHERE gd.MaTaiKhoan = @MaTaiKhoan
+              AND gd.NgayGiaoDich >= @MonthStart
+              AND gd.NgayGiaoDich <= @DayEnd;
+
+            SET @TongSoDu = @TongSoDu + @SoDuCuoiNgay;
+            SET @Day = @Day + 1;
+        END;
+
+        SET @AvgBalance = @TongSoDu / @DaysInMonth;
+
+        MERGE dbo.SoDuBinhQuanThang AS target
+        USING (
+            SELECT @CIF AS CIF, @ThangNam AS ThangNam, @AvgBalance AS AvgBalance, @MaKhachHang AS MaKhachHang
+        ) AS src
+            ON target.CIF = src.CIF AND target.ThangNam = src.ThangNam
+        WHEN MATCHED THEN
+            UPDATE SET
+                AvgBalance = src.AvgBalance,
+                MaKhachHang = src.MaKhachHang,
+                NgayTinh = SYSDATETIME()
+        WHEN NOT MATCHED THEN
+            INSERT (CIF, ThangNam, AvgBalance, MaKhachHang)
+            VALUES (src.CIF, src.ThangNam, src.AvgBalance, src.MaKhachHang);
+
+        FETCH NEXT FROM cur INTO @MaKhachHang, @MaTaiKhoan, @CIF;
+    END;
+
+    CLOSE cur;
+    DEALLOCATE cur;
+END;
+GO
+

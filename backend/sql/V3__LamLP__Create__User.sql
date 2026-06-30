@@ -1,7 +1,15 @@
--- =============================================================================
--- V3__LamLP__Create__User.sql
--- Tạo login và user cho hệ thống
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410060 - Lê Phước Lâm
+File        : V3__LamLP__Create__User.sql
+Part        : 1.3 - Tạo Login và User
+Purpose     : Tạo login và user cho hệ thống
+
+Yêu cầu đề bài:
+- Tạo login qltt_admin, qltt_nhanvien, qltt_baocao
+- Tạo user tương ứng trong database QLTT
+===============================================================================
+*/
 
 USE master;
 GO

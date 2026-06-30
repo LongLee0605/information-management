@@ -1,9 +1,16 @@
--- =============================================================================
--- V6__LoiLCA__Create__Table_TaiKhoan.sql
--- Tạo bảng TaiKhoan (tài khoản ngân hàng)
--- Phụ thuộc: KhachHang (V5)
--- SoDuDongBang = số dư phong tỏa (view V9 alias SoDuPhongToa)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410064 - Lê Công Anh Lợi
+File        : V6__LoiLCA__Create__Table_TaiKhoan.sql
+Part        : 2.2 - Tạo bảng TaiKhoan
+Purpose     : Tạo bảng TaiKhoan (tài khoản ngân hàng)
+
+Yêu cầu đề bài:
+- Phụ thuộc: KhachHang (V5)
+- SoDuDongBang = số dư phong tỏa (view V9 alias SoDuPhongToa)
+- Tạo bảng TaiKhoan với FK, CHECK và các index liên quan
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -50,4 +57,56 @@ GO
 
 CREATE NONCLUSTERED INDEX IX_TaiKhoan_CIF_MaKhachHang
     ON dbo.TaiKhoan (CIF, MaKhachHang);
+GO
+
+/*
+===============================================================================
+Create SP SP_TaiKhoan_LayCIFTheoKhachHang
+Purpose     : Tra CIF theo MaKhachHang khi mở tài khoản mới (POST /api/accounts)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_TaiKhoan_LayCIFTheoKhachHang', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_TaiKhoan_LayCIFTheoKhachHang;
+GO
+
+CREATE PROCEDURE dbo.SP_TaiKhoan_LayCIFTheoKhachHang
+    @MaKhachHang INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        tk.CIF
+    FROM dbo.TaiKhoan tk
+    WHERE tk.MaKhachHang = @MaKhachHang
+    ORDER BY tk.LaTaiKhoanChinh DESC, tk.MaTaiKhoan;
+END;
+GO
+
+/*
+===============================================================================
+Create SP SP_TaiKhoan_TimTheoSoHoacCIF
+Purpose     : Tra MaTaiKhoan, MaKhachHang theo số TK hoặc CIF (GET /api/reports/money-flow)
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_TaiKhoan_TimTheoSoHoacCIF', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_TaiKhoan_TimTheoSoHoacCIF;
+GO
+
+CREATE PROCEDURE dbo.SP_TaiKhoan_TimTheoSoHoacCIF
+    @Lookup VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        tk.MaTaiKhoan,
+        tk.MaKhachHang
+    FROM dbo.TaiKhoan tk
+    WHERE tk.SoTaiKhoan = @Lookup
+       OR tk.CIF = @Lookup
+    ORDER BY tk.LaTaiKhoanChinh DESC, tk.MaTaiKhoan;
+END;
 GO

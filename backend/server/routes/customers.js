@@ -31,7 +31,7 @@ router.get('/:id', async (req, res) => {
         }
         const result = await req.pool.request()
             .input('MaKhachHang', sql.Int, id)
-            .query('SELECT * FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang');
+            .execute('SP_KhachHang_LayTheoMa');
         if (!result.recordset.length) {
             res.status(404).json({ error: 'Not found' });
             return;
@@ -76,7 +76,7 @@ router.post('/', async (req, res) => {
 
         const result = await req.pool.request()
             .input('MaKhachHang', sql.Int, id)
-            .query('SELECT * FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang');
+            .execute('SP_KhachHang_LayTheoMa');
 
         res.status(201).json({
             ...result.recordset[0],
@@ -113,7 +113,7 @@ router.put('/:id', async (req, res) => {
 
         const result = await req.pool.request()
             .input('MaKhachHang', sql.Int, id)
-            .query('SELECT * FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang');
+            .execute('SP_KhachHang_LayTheoMa');
 
         res.json(result.recordset[0]);
     }

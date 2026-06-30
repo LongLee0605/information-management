@@ -13,3 +13,8 @@ export interface UserFinance {
     monthly: MonthlyFinance[];
     breakdown: SourceBreakdown[];
 }
+export interface AvgBalanceRecord {
+    cif: string;
+    monthYear: string;
+    avgBalance: number;
+}

@@ -1,9 +1,16 @@
--- =============================================================================
--- V26__LongLTD__Upsert__Reports_MoneyFlow_Accounts.sql
--- Gộp V26–V32 (cũ): PieChart, schema truy vết, loại TK ghi nợ/thấu chi,
--- SP_TruyVetDongTien, đồng bộ số dư
--- LongLTD
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410067 - Lê Trần Đăng Long
+File        : V26__LongLTD__Upsert__Reports_MoneyFlow_Accounts.sql
+Part        : 6.11 - PieChart + SP_TruyVetDongTien + schema bổ sung
+Purpose     : Gộp V26–V32 (cũ): PieChart, schema truy vết, loại TK ghi nợ/thấu chi, SP_TruyVetDongTien, đồng bộ số dư
+
+Yêu cầu đề bài:
+- Tạo SP_BaoCao_PieChart
+- Tạo SP_TruyVetDongTien
+- Bổ sung schema và đồng bộ số dư cho truy vết dòng tiền
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -412,3 +419,14 @@ BEGIN
 END;
 GO
 
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: truy vết dòng tiền theo CIF seed [TRUYVET] (sau V27)
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_TruyVetDongTien @CIFGoc = '26410052', @TuNgay = '2025-01-01', @DenNgay = '2025-12-31', @MaxLevel = 3;

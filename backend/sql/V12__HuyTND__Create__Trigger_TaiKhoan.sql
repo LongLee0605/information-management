@@ -1,8 +1,16 @@
--- =============================================================================
--- V12__HuyTND__Create__Trigger_TaiKhoan.sql
--- Trigger cho bảng TaiKhoan
--- Phụ thuộc: TaiKhoan (V6)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410051 - Trần Nguyễn Đang Huy
+File        : V12__HuyTND__Create__Trigger_TaiKhoan.sql
+Part        : 4.2 - Trigger TaiKhoan
+Purpose     : Trigger cho bảng TaiKhoan
+
+Yêu cầu đề bài:
+- Phụ thuộc: TaiKhoan (V6)
+- TR_TaiKhoan_DongBangSoDu: đóng băng số dư khi chuyển trạng thái inactive
+- TR_TaiKhoan_ValidateInsert: không cho tạo tài khoản với số dư âm
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -54,3 +62,21 @@ BEGIN
     END;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: cập nhật trạng thái tài khoản active -> inactive (đóng băng số dư)
+
+Cleanup: UPDATE dbo.TaiKhoan SET TrangThai = 'active', SoDuHienTai = @SavedBalance, SoDuDongBang = 0 WHERE MaTaiKhoan = @TestAccountId;
+===============================================================================
+*/
+
+-- DECLARE @TestAccountId INT = (SELECT TOP 1 MaTaiKhoan FROM dbo.TaiKhoan WHERE TrangThai = 'active' ORDER BY MaTaiKhoan);
+-- DECLARE @SavedBalance DECIMAL(18, 2) = (SELECT SoDuHienTai FROM dbo.TaiKhoan WHERE MaTaiKhoan = @TestAccountId);
+--
+-- UPDATE dbo.TaiKhoan SET TrangThai = 'inactive' WHERE MaTaiKhoan = @TestAccountId;
+-- SELECT MaTaiKhoan, TrangThai, SoDuHienTai, SoDuDongBang FROM dbo.TaiKhoan WHERE MaTaiKhoan = @TestAccountId;
+--
+-- UPDATE dbo.TaiKhoan SET TrangThai = 'active', SoDuHienTai = @SavedBalance, SoDuDongBang = 0 WHERE MaTaiKhoan = @TestAccountId;

@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sql from 'mssql';
@@ -46,6 +47,25 @@ function dockerInspectContainer(name) {
     }
     return result.stdout.trim() === 'true';
 }
+function isPortOpen(host, port, timeout = 1000) {
+    return new Promise((resolve) => {
+        const socket = new net.Socket();
+        socket.setTimeout(timeout);
+        socket.once('connect', () => {
+            socket.destroy();
+            resolve(true);
+        });
+        socket.once('timeout', () => {
+            socket.destroy();
+            resolve(false);
+        });
+        socket.once('error', () => {
+            socket.destroy();
+            resolve(false);
+        });
+        socket.connect(port, host);
+    });
+}
 async function ensureDockerSqlServer() {
     console.log('\n▶ Docker: sqlserver');
     const running = dockerInspectContainer(SQL_CONTAINER);
@@ -56,6 +76,13 @@ async function ensureDockerSqlServer() {
     if (running === false) {
         console.log(`  Container ${SQL_CONTAINER} đã tồn tại — đang khởi động lại...`);
         await runCommand('docker', ['start', SQL_CONTAINER], `Docker: start ${SQL_CONTAINER}`, { shell: true });
+        return;
+    }
+    const host = process.env.DB_HOST || 'localhost';
+    const port = Number(process.env.DB_PORT) || 1433;
+    const bound = await isPortOpen(host, port);
+    if (bound) {
+        console.log(`  Cổng ${host}:${port} đã bận. Bỏ qua tạo container mới và sử dụng SQL Server hiện có.`);
         return;
     }
     console.log(`  Tạo container mới qua docker compose...`);
@@ -156,6 +183,30 @@ async function ensureFreshApiServer(port) {
     }
     return true;
 }
+async function databaseExists() {
+    const dbName = process.env.DB_NAME || 'QLTT';
+    let pool;
+    try {
+        pool = await sql.connect(getDbConfig());
+        const result = await pool.request()
+            .input('name', sql.NVarChar, dbName)
+            .query('SELECT 1 AS ok FROM sys.databases WHERE name = @name');
+        return result.recordset.length > 0;
+    }
+    finally {
+        if (pool) {
+            await pool.close();
+        }
+    }
+}
+async function ensureDatabaseMigrated() {
+    if (await databaseExists()) {
+        console.log(`\n✓ Database ${process.env.DB_NAME || 'QLTT'} đã tồn tại — bỏ qua migrate.`);
+        console.log('  Sửa file sql/ → chạy: npm run db:reset');
+        return;
+    }
+    await runCommand('node', ['scripts/migrate.js'], `Database migration [${getAppEnv()}]`, { shell: false });
+}
 async function startApiServer() {
     const port = Number(process.env.API_PORT) || 3001;
     const shouldStart = await ensureFreshApiServer(port);
@@ -186,7 +237,7 @@ async function main() {
         console.log(`\n▶ DB remote: ${process.env.DB_HOST} — bỏ qua Docker local.`);
     }
     await waitForDatabase();
-    await runCommand('node', ['scripts/migrate.js'], `Database migration [${getAppEnv()}]`, { shell: false });
+    await ensureDatabaseMigrated();
     await startApiServer();
 }
 main().catch((error) => {

@@ -48,7 +48,11 @@ Kiểm tra: http://&lt;host&gt;:3001/api/ phải trả `"env":"production"`.
 | `npm run be` | development |
 | `npm run be:prod` | production |
 | `npm run setup:prod` | tạo `.env.production` từ mẫu |
-| `npm run db:migrate` | development DB |
-| `npm run db:migrate:prod` | production DB |
+| `npm run db:migrate` | lần đầu — DB trống (development) |
+| `npm run db:migrate:prod` | lần đầu — DB trống (production) |
+| `npm run db:reset` | DROP `QLTT` + migrate full — **dùng khi sửa `sql/`** |
+| `npm run db:reset:prod` | reset DB production |
 | `npm run test:cors` | CORS dev |
 | `npm run test:cors:prod` | CORS production |
+
+Migration / reset: xem [docs/database-migration.md](../../docs/database-migration.md). Phạm vi đồ án: [docs/project-scope.md](../../docs/project-scope.md).

@@ -1,7 +1,16 @@
--- =============================================================================
--- V19__LongLTD__Get__SP_TaiKhoan_TimKiem.sql
--- SP tìm kiếm tài khoản theo nhiều tiêu chí
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410067 - Lê Trần Đăng Long
+File        : V19__LongLTD__Get__SP_TaiKhoan_TimKiem.sql
+Part        : 6.4 - SP_TaiKhoan_TimKiem
+Purpose     : SP tìm kiếm tài khoản theo nhiều tiêu chí
+
+Yêu cầu đề bài:
+- Tìm kiếm tài khoản theo MaKhachHang, CIF, SoTaiKhoan, LoaiTaiKhoan, TrangThai, NganHang
+- Sử dụng view VW_TaiKhoan
+- Hỗ trợ phân trang PageNumber, PageSize
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -48,7 +57,11 @@ BEGIN
     WHERE
         (@MaKhachHang IS NULL OR v.MaKhachHang = @MaKhachHang)
         AND (@CIF IS NULL OR v.CIF = @CIF)
-        AND (@SoTaiKhoan IS NULL OR v.SoTaiKhoan = @SoTaiKhoan)
+        AND (
+            @SoTaiKhoan IS NULL
+            OR v.SoTaiKhoan = @SoTaiKhoan
+            OR v.CIF = @SoTaiKhoan
+        )
         AND (@LoaiTaiKhoan IS NULL OR v.LoaiTaiKhoan = @LoaiTaiKhoan)
         AND (@TrangThai IS NULL OR v.TrangThai = @TrangThai)
         AND (@NganHang IS NULL OR v.NganHang LIKE N'%' + @NganHang + N'%')
@@ -57,3 +70,16 @@ BEGIN
     FETCH NEXT @PageSize ROWS ONLY;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: tìm tài khoản theo CIF seed
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_TaiKhoan_TimKiem @CIF = '26410052', @PageSize = 5;
+

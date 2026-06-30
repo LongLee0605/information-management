@@ -1,10 +1,27 @@
--- =============================================================================
--- V20__PhongNLH__Upsert__SP_TaiKhoan_MoTaiKhoan.sql
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410089 - Nguyễn Lê Hoài Phong
+File        : V20__PhongNLH__Upsert__SP_TaiKhoan_MoTaiKhoan.sql
+Part        : 6.5 - SP_TaiKhoan_MoTaiKhoan
+Purpose     : SP mở tài khoản mới cho khách hàng theo CIF
+
+Yêu cầu đề bài:
+- Mở tài khoản payment hoặc savings theo CIF
+- Mỗi khách hàng tối đa 1 tài khoản/loại
+- Tự sinh số tài khoản unique
+- Trigger TR_TaiKhoan_AuditLog ghi audit khi mở tài khoản (phụ thuộc AuditLog V5)
+===============================================================================
+*/
 
 USE QLTT;
 GO
 
+/*
+===============================================================================
+Create procedure SP_TaiKhoan_MoTaiKhoan
+Purpose     : SP mở tài khoản mới cho khách hàng theo CIF
+===============================================================================
+*/
 IF OBJECT_ID('dbo.SP_TaiKhoan_MoTaiKhoa', 'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_TaiKhoan_MoTaiKhoa;
 GO
@@ -181,3 +198,47 @@ BEGIN
     END CATCH;
 END;
 GO
+
+/*
+===============================================================================
+Create trigger TR_TaiKhoan_AuditLog
+Purpose     : Ghi AuditLog khi INSERT tài khoản mới
+===============================================================================
+*/
+IF OBJECT_ID('dbo.TR_TaiKhoan_AuditLog', 'TR') IS NOT NULL
+    DROP TRIGGER dbo.TR_TaiKhoan_AuditLog;
+GO
+
+CREATE TRIGGER dbo.TR_TaiKhoan_AuditLog
+ON dbo.TaiKhoan
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.AuditLog (TenBang, MaBanGhi, HanhDong, NoiDung, NguoiThucHien)
+    SELECT
+        'TaiKhoan',
+        i.MaTaiKhoan,
+        'INSERT',
+        N'Mo tai khoan: ' + i.SoTaiKhoan + N' (' + i.LoaiTaiKhoan + N', CIF ' + i.CIF + N')',
+        SUSER_SNAME()
+    FROM inserted i;
+END;
+GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: mở tài khoản savings cho CIF seed (nếu chưa có loại savings)
+
+Cleanup: UPDATE dbo.TaiKhoan SET TrangThai = 'inactive' WHERE SoTaiKhoan = @NewSoTaiKhoan;
+===============================================================================
+*/
+
+-- DECLARE @NewSoTaiKhoan VARCHAR(20);
+-- EXEC dbo.SP_TaiKhoan_MoTaiKhoan @CIF = '26410052', @LoaiTaiKhoan = 'savings';
+-- SET @NewSoTaiKhoan = (SELECT TOP 1 SoTaiKhoan FROM dbo.TaiKhoan WHERE CIF = '26410052' AND LoaiTaiKhoan = 'savings' ORDER BY MaTaiKhoan DESC);
+-- UPDATE dbo.TaiKhoan SET TrangThai = 'inactive' WHERE SoTaiKhoan = @NewSoTaiKhoan;
+

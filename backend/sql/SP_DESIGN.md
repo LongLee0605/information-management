@@ -10,6 +10,7 @@
 | Tìm kiếm     | V{x}__{Author}__Get__{Object}_{Action}.sql |
 | Thêm/Cập nhật| V{x}__{Author}__Upsert__{Object}_{Action}.sql |
 | Báo cáo      | V{x}__{Author}__GetReport__{Object}_{Action}.sql |
+| Function     | V{x}__{Author}__Create__FN_{Object}_{Action}.sql |
 
 **Output chuẩn cho Upsert/Delete:**
 ```json
@@ -70,6 +71,45 @@
   1. KhachHangID tồn tại
   2. Không có tài khoản `active` — nếu có, từ chối xóa
 - **Output:** `{ ID, Message }`
+
+---
+
+### V8__AnhTPQ__Create__View_KhachHang
+- **File metadata (root):** giữ nguyên — `Part 3.1 - View KhachHang` (khớp báo cáo)
+- **View:** `dbo.VW_KhachHang`
+- **Phụ thuộc:** `KhachHang` (V5), `TaiKhoan` (V6)
+- **Output view:** Thông tin KH + tài khoản chính active (`CIFChinh`, `SoTaiKhoanChinh`, `SoDuTaiKhoanChinh`, …)
+
+*Phần bổ sung trong cùng file (block comment riêng, không đổi metadata root):*
+
+#### FN_KhachHang_TinhPhanHang
+- **Function:** `dbo.FN_KhachHang_TinhPhanHang`
+- **Input:**
+  | Tham số | Kiểu | Mô tả |
+  |---|---|---|
+  | @SoDu | DECIMAL(18,2) | Số dư tài khoản chính active |
+- **Ngưỡng phân hạng (constants trong function):**
+  | Số dư | Phân hạng |
+  |---|---|
+  | >= 100.000.000 | `Diamond` |
+  | >= 50.000.000 | `Gold` |
+  | >= 1.000.000 | `Silver` |
+  | < 1.000.000 hoặc NULL | `NULL` *(Standard — không hiện badge)* |
+- **Output function:** `Diamond` / `Gold` / `Silver` / `NULL`
+
+#### SP_KhachHang_LayTheoMa *(override định nghĩa V5)*
+- **SP:** `dbo.SP_KhachHang_LayTheoMa`
+- **Sử dụng:** View `dbo.VW_KhachHang` — cột `SoDuTaiKhoanChinh`
+- **Backend:** `GET /api/customers/:id` — pass-through `PhanHang`, `SoDuTinhPhanHang`
+- **Frontend:** `UserProfile` — Badge phân hạng từ `tier` (map `PhanHang`)
+- **Input:** `@MaKhachHang INT`
+- **Output SP (bổ sung so với V5):**
+  | Cột | Mô tả |
+  |---|---|
+  | `SoDuTinhPhanHang` | `ISNULL(SoDuTaiKhoanChinh, 0)` |
+  | `PhanHang` | `FN_KhachHang_TinhPhanHang(SoDuTaiKhoanChinh)` |
+- **Validate:** Không cần (chỉ đọc)
+- **Lưu ý:** Snapshot số dư hiện tại; không query lịch sử `GiaoDich` theo tháng
 
 ---
 
@@ -144,6 +184,19 @@
 
 ## NHÓM GIAO DỊCH
 
+### V7__HuyTND__Create__Table_GiaoDich
+- **File metadata (root):** giữ nguyên — `Part 2.3 - Tạo bảng GiaoDich` (khớp báo cáo)
+- **Bảng chính:** `dbo.GiaoDich`
+
+*Phần bổ sung trong cùng file (block comment riêng):*
+
+#### SoDuBinhQuanThang
+- **Bảng:** `dbo.SoDuBinhQuanThang`
+- **Cột:** `CIF`, `ThangNam` (MM/YYYY), `AvgBalance`, `MaKhachHang`, `NgayTinh`
+- **UQ:** `(CIF, ThangNam)` — job upsert idempotent
+
+---
+
 ### V22__TrangTTN__Get__SP_GiaoDich_TimKiem
 - **SP:** `dbo.sp_GiaoDich_TimKiem`
 - **Sử dụng:** View `dbo.VW_GiaoDich`
@@ -159,6 +212,13 @@
   | @PageNumber | INT |
   | @PageSize | INT |
 - **Output:** Danh sách từ `VW_GiaoDich` + `TotalRow`
+
+#### SP_GiaoDich_LaySoDuBinhQuan *(block bổ sung trong cùng file V22)*
+- **SP:** `dbo.SP_GiaoDich_LaySoDuBinhQuan`
+- **Backend:** `GET /api/reports/avg-balance`
+- **Input:** `@MaKhachHang INT`, `@ThangNam VARCHAR(7)` NULL = tất cả tháng
+- **Output:** `CIF`, `ThangNam`, `AvgBalance`
+- **Validate:** KH không tồn tại → THROW 50060
 
 ---
 
@@ -185,6 +245,13 @@
 - **Output:** `{ MaGiaoDich, NgayGiaoDich, LoaiGiaoDich, SoTien, MaTaiKhoanDich, SoDuSauGiaoDich }`
 - **Không có UPDATE/DELETE** (giao dịch bất biến)
 - **Lưu ý:** Chuyển khoản FE tạo 2 lần gọi — debit (có `MaTaiKhoanDich`) + credit (không có đích)
+
+#### SP_GiaoDich_TinhSoDuBinhQuan *(block bổ sung trong cùng file V23)*
+- **SP:** `dbo.SP_GiaoDich_TinhSoDuBinhQuan` — job tính số dư bình quân
+- **Input:** `@Thang INT`, `@Nam INT` (default tháng/năm hiện tại)
+- **Logic:** CURSOR từng KH có TK chính active → tính trung bình số dư cuối ngày trong tháng từ `GiaoDich` → MERGE `SoDuBinhQuanThang`
+- **Edge case:** KH không có TK chính → bỏ qua
+- **Demo:** V27 `EXEC` sau `SP_TaiKhoan_DongBoSoDu` cho tháng 06/2026
 
 ---
 
@@ -223,9 +290,12 @@
 
 ---
 
-### V26__LongLTD__GetReport__SP_BaoCao_PieChart
-- **SP:** `dbo.sp_BaoCao_PieChart`
-- **Input:** `@TuNgay DATETIME`, `@DenNgay DATETIME`
+### V26__LongLTD__Upsert__Reports_MoneyFlow_Accounts
+- **File gộp:** PieChart + schema truy vết + `SP_TruyVetDongTien` + `SP_TaiKhoan_DongBoSoDu`
+
+#### SP_BaoCao_PieChart
+- **SP:** `dbo.SP_BaoCao_PieChart`
+- **Input:** `@MaKhachHang INT`, `@LoaiGiaoDich`, `@TuNgay`, `@DenNgay`
 - **Output (khớp với `pieData` trong Overview.tsx):**
   ```json
   [
@@ -235,11 +305,9 @@
   ```
   *Value là phần trăm. Recharts `<Pie dataKey="value">` map trực tiếp.*
 
----
-
-### V27__LongLTD__GetReport__SP_MoneyFlowTrace
+#### SP_TruyVetDongTien
 - **SP:** `dbo.SP_TruyVetDongTien`
-- **Schema:** thêm `GiaoDich.MaTaiKhoanDich` (FK → TaiKhoan) trong cùng script
+- **Schema:** bổ sung `GiaoDich.MaTaiKhoanDich` (FK → TaiKhoan) trong cùng script
 - **Mục đích:** Truy vết đồ thị dòng tiền F0→F3 theo CIF/tài khoản gốc
 - **Input:**
   | Tham số | Kiểu | Mô tả |
@@ -259,20 +327,19 @@
   2. TuNgay ≤ DenNgay (tự hoán đổi nếu ngược)
   3. MaxLevel 1–5
 
+#### SP_TaiKhoan_DongBoSoDu
+- **SP:** `dbo.SP_TaiKhoan_DongBoSoDu`
+- **Mục đích:** Đồng bộ `SoDuHienTai` sau INSERT mẫu (V15/V27 không qua `SP_GiaoDich_TaoGiaoDich`)
+- **Công thức:** `SoDuHienTai = SoDuKhoiTao (V14) + SUM(credit) − SUM(debit)`
+- **Chạy:** Tự động `EXEC` cuối V27
+
 ---
 
-### V28__LongLTD__Insert__SampleData_Transactions_Extended
+### V27__LongLTD__Insert__SampleData_Transactions_Extended
 - **Mục đích:** Dữ liệu mẫu mở rộng sau V15
 - **Phần 1 `[TRUYVET]`:** Chuỗi F1–F3 (2–4 người/cấp), tháng 4/2025, có `MaTaiKhoanDich`
 - **Phần 2 `[DEMO-TXN]`:** ~50 giao dịch/KH, rải 2025-01-01 → GETDATE()
-
----
-
-### V29__LongLTD__Upsert__SP_Account_SyncBalance
-- **SP:** `dbo.SP_TaiKhoan_DongBoSoDu`
-- **Mục đích:** Đồng bộ `SoDuHienTai` sau INSERT mẫu (V15/V28 không qua SP_GiaoDich_TaoGiaoDich)
-- **Công thức:** `SoDuHienTai = SoDuKhoiTao (V14) + SUM(credit) − SUM(debit)`
-- **Chạy:** Tự động `EXEC` cuối script migrate
+- **Cuối script:** `EXEC dbo.SP_TaiKhoan_DongBoSoDu` + `EXEC dbo.SP_GiaoDich_TinhSoDuBinhQuan @Thang=6, @Nam=2026`
 
 ---
 
@@ -305,8 +372,5 @@
 | V23 | SP GiaoDich TaoGiaoDich | LoiLCA |
 | V24 | SP BaoCao TongQuan | AnhTPQ |
 | V25 | SP BaoCao BieuDoTheoThang | VietVH |
-| V26 | SP BaoCao PieChart | LongLTD |
-| V27 | Alter Transaction + SP MoneyFlowTrace | LongLTD |
-| V28 | Insert Transactions Extended (TRUYVET + DEMO) | LongLTD |
-| V29 | SP Account SyncBalance | LongLTD |
-| V30 | SP MoneyFlowTrace (real transfers + limits) | LongLTD |
+| V26 | Reports MoneyFlow + PieChart + SyncBalance | LongLTD |
+| V27 | Insert Transactions Extended (TRUYVET + DEMO) | LongLTD |

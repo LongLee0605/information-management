@@ -1,8 +1,15 @@
--- =============================================================================
--- V14__LoiLCA__Insert__SampleData_TaiKhoan.sql
--- Chèn dữ liệu mẫu vào bảng TaiKhoan — mỗi KH một CIF riêng
--- Idempotent: chỉ INSERT khi chưa có dữ liệu mẫu
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410064 - Lê Công Anh Lợi
+File        : V14__LoiLCA__Insert__SampleData_TaiKhoan.sql
+Part        : 5.2 - Sample data TaiKhoan
+Purpose     : Chèn dữ liệu mẫu vào bảng TaiKhoan — mỗi KH một CIF riêng
+
+Yêu cầu đề bài:
+- Idempotent: chỉ INSERT khi chưa có dữ liệu mẫu
+- Mỗi khách hàng một CIF riêng và tài khoản thanh toán chính
+===============================================================================
+*/
 
 USE QLTT;
 GO

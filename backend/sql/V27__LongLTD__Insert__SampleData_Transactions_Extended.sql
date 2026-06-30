@@ -1,7 +1,15 @@
--- =============================================================================
--- V27__LongLTD__Insert__SampleData_Transactions_Extended.sql
--- Dữ liệu mẫu: [TRUYVET] F1–F3 + [DEMO-TXN] giao dịch hàng ngày
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410067 - Lê Trần Đăng Long
+File        : V27__LongLTD__Insert__SampleData_Transactions_Extended.sql
+Part        : 5.4 - Sample data truy vết và demo transactions
+Purpose     : Dữ liệu mẫu: [TRUYVET] F1–F3 + [DEMO-TXN] giao dịch hàng ngày
+
+Yêu cầu đề bài:
+- Idempotent: chỉ INSERT khi chưa có dữ liệu [TRUYVET]
+- Bổ sung giao dịch truy vết dòng tiền và giao dịch demo hàng ngày
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -243,4 +251,7 @@ END;
 GO
 
 EXEC dbo.SP_TaiKhoan_DongBoSoDu;
+GO
+
+EXEC dbo.SP_GiaoDich_TinhSoDuBinhQuan @Thang = 6, @Nam = 2026;
 GO

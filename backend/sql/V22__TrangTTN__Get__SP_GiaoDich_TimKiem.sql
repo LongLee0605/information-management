@@ -1,7 +1,15 @@
--- =============================================================================
--- V22__TrangTTN__Get__SP_GiaoDich_TimKiem.sql
--- SP tìm kiếm giao dịch theo nhiều tiêu chí
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410138 - Trần Thị Ngọc Trang
+File        : V22__TrangTTN__Get__SP_GiaoDich_TimKiem.sql
+Part        : 6.7 - SP_GiaoDich_TimKiem
+Purpose     : SP tìm kiếm giao dịch theo nhiều tiêu chí
+
+Yêu cầu đề bài:
+- Tìm kiếm giao dịch theo MaTaiKhoan, MaKhachHang, LoaiGiaoDich, khoảng ngày, danh mục, số tiền
+- Hỗ trợ phân trang PageNumber, PageSize
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -56,3 +64,49 @@ BEGIN
     FETCH NEXT @PageSize ROWS ONLY;
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: tìm giao dịch theo MaKhachHang
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_GiaoDich_TimKiem @MaKhachHang = 1, @PageSize = 10;
+
+/*
+===============================================================================
+Create SP SP_GiaoDich_LaySoDuBinhQuan
+Purpose     : Doc ket qua job so du binh quan theo khach hang
+Backend     : GET /api/reports/avg-balance
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SP_GiaoDich_LaySoDuBinhQuan', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_GiaoDich_LaySoDuBinhQuan;
+GO
+
+CREATE PROCEDURE dbo.SP_GiaoDich_LaySoDuBinhQuan
+    @MaKhachHang    INT,
+    @ThangNam       VARCHAR(7) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM dbo.KhachHang WHERE MaKhachHang = @MaKhachHang)
+        THROW 50060, N'Khong tim thay KhachHang.', 1;
+
+    SELECT
+        sb.CIF,
+        sb.ThangNam,
+        sb.AvgBalance
+    FROM dbo.SoDuBinhQuanThang sb
+    WHERE sb.MaKhachHang = @MaKhachHang
+      AND (@ThangNam IS NULL OR sb.ThangNam = @ThangNam)
+    ORDER BY sb.ThangNam DESC;
+END;
+GO
+

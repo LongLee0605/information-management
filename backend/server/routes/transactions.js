@@ -45,7 +45,7 @@ router.get('/:id', async (req, res) => {
         }
         const result = await req.pool.request()
             .input('MaGiaoDich', sql.Int, id)
-            .query('SELECT * FROM dbo.VW_GiaoDich WHERE MaGiaoDich = @MaGiaoDich');
+            .execute('SP_GiaoDich_LayTheoMa');
         if (!result.recordset.length) {
             res.status(404).json({ error: 'Not found' });
             return;
@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
         }
         const detail = await req.pool.request()
             .input('MaGiaoDich', sql.Int, maGiaoDich)
-            .query('SELECT * FROM dbo.VW_GiaoDich WHERE MaGiaoDich = @MaGiaoDich');
+            .execute('SP_GiaoDich_LayTheoMa');
         res.status(201).json(detail.recordset[0] ?? created.recordset[0]);
     }
     catch (err) {

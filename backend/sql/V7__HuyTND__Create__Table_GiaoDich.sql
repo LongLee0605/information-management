@@ -1,8 +1,15 @@
--- =============================================================================
--- V7__HuyTND__Create__Table_GiaoDich.sql
--- Tạo bảng GiaoDich (lịch sử giao dịch)
--- Phụ thuộc: TaiKhoan (V6)
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410051 - Trần Nguyễn Đang Huy
+File        : V7__HuyTND__Create__Table_GiaoDich.sql
+Part        : 2.3 - Tạo bảng GiaoDich
+Purpose     : Tạo bảng GiaoDich (lịch sử giao dịch)
+
+Yêu cầu đề bài:
+- Phụ thuộc: TaiKhoan (V6)
+- Tạo bảng GiaoDich với FK, CHECK và index IX_GiaoDich_MaTaiKhoan_Ngay
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -43,4 +50,33 @@ GO
 
 CREATE NONCLUSTERED INDEX IX_GiaoDich_MaTaiKhoan_Ngay
     ON dbo.GiaoDich (MaTaiKhoan, NgayGiaoDich DESC);
+GO
+
+/*
+===============================================================================
+Create table SoDuBinhQuanThang
+Purpose     : Luu ket qua job tinh so du binh quan theo thang
+Backend     : GET /api/reports/avg-balance
+===============================================================================
+*/
+
+IF OBJECT_ID('dbo.SoDuBinhQuanThang', 'U') IS NOT NULL
+    DROP TABLE dbo.SoDuBinhQuanThang;
+GO
+
+CREATE TABLE dbo.SoDuBinhQuanThang
+(
+    MaSoDuBinhQuan  INT             IDENTITY(1,1)   NOT NULL,
+    CIF             VARCHAR(20)                     NOT NULL,
+    ThangNam        VARCHAR(7)                      NOT NULL,
+    AvgBalance      DECIMAL(18, 2)                  NOT NULL,
+    MaKhachHang     INT                             NOT NULL,
+    NgayTinh        DATETIME2(0)                    NOT NULL
+        CONSTRAINT DF_SoDuBinhQuanThang_NgayTinh DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_SoDuBinhQuanThang PRIMARY KEY CLUSTERED (MaSoDuBinhQuan),
+    CONSTRAINT UQ_SoDuBinhQuanThang_CIF_ThangNam UNIQUE (CIF, ThangNam),
+    CONSTRAINT FK_SoDuBinhQuanThang_KhachHang
+        FOREIGN KEY (MaKhachHang) REFERENCES dbo.KhachHang (MaKhachHang)
+);
 GO

@@ -18,6 +18,9 @@ export function UserProfile({ user }: UserProfileProps) {
           </Text>
           <div className="mt-3 flex flex-wrap gap-2">
             <GenderBadge gender={user.gender}/>
+            {user.tier && (
+              <Badge variant="default">{user.tier}</Badge>
+            )}
             <Badge variant="neutral">{user.maritalStatus}</Badge>
             <Badge variant="income">
               TB {formatCurrency(user.monthlyIncomeAvg)}/tháng

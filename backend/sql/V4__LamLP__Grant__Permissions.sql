@@ -1,7 +1,17 @@
--- =============================================================================
--- V4__LamLP__Grant__Permissions.sql
--- Phân quyền cho các role
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410060 - Lê Phước Lâm
+File        : V4__LamLP__Grant__Permissions.sql
+Part        : 1.4 - Phân quyền Role
+Purpose     : Phân quyền cho các role
+
+Yêu cầu đề bài:
+- Gán user vào role tương ứng
+- Cấp quyền CONTROL cho role_admin
+- Cấp quyền SELECT, INSERT, UPDATE, EXECUTE cho role_nhanvien
+- Cấp quyền SELECT, EXECUTE cho role_baocao
+===============================================================================
+*/
 
 USE QLTT;
 GO

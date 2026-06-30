@@ -12,6 +12,7 @@ const ENDPOINTS = [
     { path: '/api/transactions?pageSize=1', expectOk: true, expectJson: true, expectArray: true },
     { path: '/api/reports/overview?fromDate=2025-01-01&toDate=2025-12-31', expectOk: true, expectJson: true, minBody: 10 },
     { path: '/api/reports/monthly-chart?customerId=1&year=2025', expectOk: true, expectJson: true, expectArray: true },
+    { path: '/api/reports/avg-balance?customerId=1&month=6&year=2026', expectOk: true, expectJson: true, expectArray: true },
     { path: '/api/reports/pie-chart?customerId=1&fromDate=2025-01-01&toDate=2025-12-31', expectOk: true, expectJson: true, expectArray: true },
     { path: '/api/reports/money-flow?cif=26410052&fromDate=2025-01-01&toDate=2026-06-19', expectOk: true, expectJson: true, expectArray: true },
     { path: '/api/reports/money-flow?cif=INVALID', expectOk: true, expectJson: true, expectArray: true },

@@ -12,45 +12,16 @@ router.get('/', async (req, res) => {
             res.status(400).json({ error: 'customerId phải là số nguyên dương.' });
             return;
         }
-        const request = req.pool.request()
+        const result = await req.pool.request()
             .input('MaKhachHang', sql.Int, parsedCustomerId)
+            .input('CIF', sql.VarChar(20), null)
             .input('SoTaiKhoan', sql.VarChar(20), accountNumber || cif || null)
             .input('LoaiTaiKhoan', sql.VarChar(20), accountType || null)
             .input('TrangThai', sql.VarChar(10), status || null)
             .input('NganHang', sql.NVarChar(50), bank || null)
             .input('PageNumber', sql.Int, parsePageNumber(page))
-            .input('PageSize', sql.Int, parsePageSize(pageSize, 100));
-        const result = await request.query(`
-      SELECT
-        v.MaTaiKhoan,
-        v.SoTaiKhoan,
-        v.LoaiTaiKhoan,
-        v.NhanLoaiTaiKhoan,
-        v.SoDuHienTai,
-        v.SoDuDongBang,
-        v.SoDuKhaDung,
-        v.TrangThai,
-        v.NganHang,
-        v.LaTaiKhoanChinh,
-        v.MaKhachHang,
-        v.HoTen,
-        v.DienThoai,
-        v.CIF
-      FROM dbo.VW_TaiKhoan v
-      WHERE
-        (@MaKhachHang IS NULL OR v.MaKhachHang = @MaKhachHang)
-        AND (
-          @SoTaiKhoan IS NULL
-          OR v.SoTaiKhoan = @SoTaiKhoan
-          OR v.CIF = @SoTaiKhoan
-        )
-        AND (@LoaiTaiKhoan IS NULL OR v.LoaiTaiKhoan = @LoaiTaiKhoan)
-        AND (@TrangThai IS NULL OR v.TrangThai = @TrangThai)
-        AND (@NganHang IS NULL OR v.NganHang LIKE N'%' + @NganHang + N'%')
-      ORDER BY v.HoTen, v.LaTaiKhoanChinh DESC
-      OFFSET (@PageNumber - 1) * @PageSize ROWS
-      FETCH NEXT @PageSize ROWS ONLY;
-    `);
+            .input('PageSize', sql.Int, parsePageSize(pageSize, 100))
+            .execute('SP_TaiKhoan_TimKiem');
         res.json(ensureRecordset(result.recordset));
     }
     catch (err) {
@@ -67,7 +38,7 @@ router.get('/:id', async (req, res) => {
         }
         const result = await req.pool.request()
             .input('MaTaiKhoan', sql.Int, id)
-            .query('SELECT * FROM dbo.VW_TaiKhoan WHERE MaTaiKhoan = @MaTaiKhoan');
+            .execute('SP_TaiKhoan_LayTheoMa');
         if (!result.recordset.length) {
             res.status(404).json({ error: 'Not found' });
             return;
@@ -94,12 +65,7 @@ router.post('/', async (req, res) => {
         if (!resolvedCif && parsedCustomerId !== null) {
             const lookup = await req.pool.request()
                 .input('MaKhachHang', sql.Int, parsedCustomerId)
-                .query(`
-                    SELECT TOP 1 CIF
-                    FROM dbo.TaiKhoan
-                    WHERE MaKhachHang = @MaKhachHang
-                    ORDER BY LaTaiKhoanChinh DESC, MaTaiKhoan;
-                `);
+                .execute('SP_TaiKhoan_LayCIFTheoKhachHang');
             resolvedCif = lookup.recordset[0]?.CIF ?? '';
         }
 
@@ -121,7 +87,7 @@ router.post('/', async (req, res) => {
 
         const account = await req.pool.request()
             .input('MaTaiKhoan', sql.Int, created.ID)
-            .query('SELECT * FROM dbo.VW_TaiKhoan WHERE MaTaiKhoan = @MaTaiKhoan');
+            .execute('SP_TaiKhoan_LayTheoMa');
 
         res.status(201).json(account.recordset[0] ?? created);
     }

@@ -1,7 +1,15 @@
--- =============================================================================
--- V24__AnhTPQ__GetReport__SP_BaoCao_TongQuan.sql
--- SP báo cáo tổng quan hệ thống
--- =============================================================================
+/*
+===============================================================================
+Author      : 26410005 - Trần Phúc Quyền Anh
+File        : V24__AnhTPQ__GetReport__SP_BaoCao_TongQuan.sql
+Part        : 6.9 - SP_BaoCao_TongQuan
+Purpose     : SP báo cáo tổng quan hệ thống
+
+Yêu cầu đề bài:
+- Báo cáo tổng quan theo khoảng ngày TuNgay, DenNgay
+- Lọc theo CIF tùy chọn (NULL = toàn hệ thống)
+===============================================================================
+*/
 
 USE QLTT;
 GO
@@ -46,3 +54,16 @@ BEGIN
       AND (@CIF IS NULL OR tk.CIF = @CIF);
 END;
 GO
+
+/*
+===============================================================================
+Test mẫu - chỉ chạy MANUAL.
+- Uncomment block bên dưới để test.
+- Happy case: báo cáo tổng quan năm 2025
+
+Cleanup: không cần (read-only)
+===============================================================================
+*/
+
+-- EXEC dbo.SP_BaoCao_TongQuan @TuNgay = '2025-01-01', @DenNgay = '2025-12-31';
+

@@ -1,5 +1,5 @@
 import api, { API_PATHS } from '@/lib/api';
-import type { CreateUserInput, CreateUserResult, Gender, UpdateUserInput, User } from '@/types';
+import type { CreateUserInput, CreateUserResult, CustomerTier, Gender, UpdateUserInput, User } from '@/types';
 import { getApiCifFromUserId, getApiUserIdFromCif } from '@/utils/apiAccountCache';
 import { resolveUserIdFromRouteParam } from '@/utils/userRoute';
 import { notifyDataChange } from '@/utils/dataChangeBus';
@@ -18,6 +18,7 @@ interface ApiCustomer {
     HocVan: string | null;
     ThuNhapTBThang: number | null;
     CIF?: string | null;
+    PhanHang?: CustomerTier | null;
 }
 interface ApiAccountLookup {
     MaKhachHang: number;
@@ -37,6 +38,7 @@ function mapUser(row: ApiCustomer): User {
         maritalStatus: row.TinhTrangHonNhan ?? '—',
         education: row.HocVan ?? '—',
         monthlyIncomeAvg: row.ThuNhapTBThang ?? 0,
+        tier: row.PhanHang ?? null,
     };
 }
 export async function getUsers(): Promise<User[]> {
